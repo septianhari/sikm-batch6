@@ -31,7 +31,15 @@ func ChangeToCurrency(change int) string {
 }
 
 func MoneyChange(money int, listPrice ...int) string {
-	return "" // TODO: replace this
+	totalPrice := 0
+	for _, price := range listPrice {
+		totalPrice += price
+	}
+	change := money - totalPrice
+	if change < 0 {
+		return "Uang tidak cukup"
+	}
+	return ChangeToCurrency(change)
 }
 
 // gunakan untuk melakukan debug
