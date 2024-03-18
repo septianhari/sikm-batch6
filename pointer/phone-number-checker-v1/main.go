@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -62,5 +63,5 @@ func main() {
 	var result string
 
 	PhoneNumberChecker(number, &result)
-	fmt.Println(result)
+	fmt.Fprintln(os.Stdout, []any{result}...)
 }
