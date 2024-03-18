@@ -7,30 +7,28 @@ import (
 
 func BiggestPairNumber(numbers int) int {
 	numStr := strconv.Itoa(numbers)
-	maxSum := 0
 
-	for i := 0; i < len(numStr)-1; i++ {
-		pair, _ := strconv.Atoi(numStr[i : i+2])
-		if pair > maxSum {
-			maxSum = pair
+	var pair = 0
+	var biggest = 0
+
+	for i := 1; i < len(numStr); i++ {
+		num1, _ := strconv.Atoi(string(numStr[i]))
+		num2, _ := strconv.Atoi(string(numStr[i-1]))
+
+		jumlah := num1 + num2
+		if jumlah > biggest {
+			biggest = jumlah
+
+			// gabungkan angkanya
+			pairNum, _ := strconv.Atoi(string(numStr[i-1]) + string(numStr[i]))
+			pair = pairNum
 		}
 	}
 
-	return maxSum
+	return pair // TODO: replace this
 }
 
+// gunakan untuk melakukan debug
 func main() {
-	// Test case 1
-	input1 := 11223344
-	fmt.Println("Test Case 1:")
-	fmt.Println("Input:", input1)
-	fmt.Println("Output:", BiggestPairNumber(input1))
-	fmt.Println()
-
-	// Test case 2
-	input2 := 89083278
-	fmt.Println("Test Case 2:")
-	fmt.Println("Input:", input2)
-	fmt.Println("Output:", BiggestPairNumber(input2)-1)
-
+	fmt.Println(BiggestPairNumber(11223344))
 }

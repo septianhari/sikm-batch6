@@ -6,38 +6,32 @@ import (
 )
 
 func CountVowelConsonant(str string) (int, int, bool) {
-	vowels := "aiueo"
-	vowelCount, consonantCount := 0, 0
+	var vocalCount, consonantCount int
+	var isValid bool
 
-	for _, char := range str {
-		if strings.Contains(vowels, strings.ToLower(string(char))) {
-			vowelCount++
-		} else if char != ' ' {
-			consonantCount++
+	for _, c := range str {
+		cc := strings.ToLower(string(c))
+
+		if cc == "a" || cc == "i" || cc == "u" || cc == "e" || cc == "o" {
+			vocalCount += 1
+		} else if cc >= "a" && cc <= "z" {
+			consonantCount += 1
 		}
 	}
 
-	return vowelCount, consonantCount, vowelCount == 0 || consonantCount == 0
+	if vocalCount == 0 || consonantCount == 0 {
+		isValid = true
+	} else {
+		isValid = false
+	}
+
+	return vocalCount, consonantCount, isValid // TODO: replace this
 }
 
+// gunakan untuk melakukan debug
 func main() {
-	// Test cases
-	testCases := []struct {
-		input          string
-		expectedOutput string
-	}{
-		{"kopi", "2, 2, false"},
-		{"bbbbb ccccc", "0, 10, true"},
-		{"Hidup Itu Indah", "6, 7, false"},
-	}
+	fmt.Println(CountVowelConsonant("Hidup Itu Indah"))
+	fmt.Println(CountVowelConsonant("bbbb cccc"))
+	fmt.Println(CountVowelConsonant("aaa iii"))
 
-	for _, tc := range testCases {
-		vowels, consonants, noVowelOrConsonant := CountVowelConsonant(tc.input)
-		output := fmt.Sprintf("%d, %d, %t", vowels, consonants, noVowelOrConsonant)
-		if output == tc.expectedOutput {
-			fmt.Printf("Input: %q\nOutput: %s\nExpected: %s\nResult: Passed\n\n", tc.input, output, tc.expectedOutput)
-		} else {
-			fmt.Printf("Input: %q\nOutput: %s\nExpected: %s\nResult: Failed\n\n", tc.input, output, tc.expectedOutput)
-		}
-	}
 }
