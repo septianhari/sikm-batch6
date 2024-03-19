@@ -1,5 +1,14 @@
 package main
 
+import (
+	"fmt"
+	"sort"
+)
+
 func Sortheight(height []int) []int {
-	return nil // TODO: replace this
+	fmt.Println("Before", height)
+	sort.Slice(height, func(i, j int) bool {
+		return height[j] > height[i]
+	})
+	return height
 }
