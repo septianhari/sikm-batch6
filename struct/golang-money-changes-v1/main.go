@@ -61,4 +61,5 @@ func main() {
 
 	changes := MoneyChanges(20000, products)
 	fmt.Println(changes)
+
 }
