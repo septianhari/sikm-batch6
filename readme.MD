@@ -30,9 +30,6 @@ Anda dapat mulai dengan menjelajahi direktori /bab untuk mempelajari materi seca
 
 Jika Anda ingin berkontribusi pada repositori ini dengan menambahkan materi pembelajaran baru, contoh kode, atau sumber daya tambahan, silakan buat pull request dengan perubahan Anda. Kami sangat menghargai kontribusi dari komunitas untuk meningkatkan kualitas dan ketersediaan sumber daya pembelajaran Golang.
 
-## Lisensi
-
-Lisensi untuk repositori ini dapat ditemukan dalam file LICENSE. Pastikan untuk mematuhi ketentuan lisensi sebelum menggunakan atau berkontribusi pada repositori ini.
 
 ## Kontak
 
