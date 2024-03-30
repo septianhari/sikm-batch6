@@ -8,8 +8,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("internal", func() {
-	Describe("Calculator", internal.CalculatorTestCase)
+var _ = Describe("internal", internal.CalculatorTestCase)
+
+var _ = Describe("AdvanceCalculator", func() {
+	// Konteks dan kasus pengujian di sini
 })
 
 var _ = Describe("AdvanceCalculator", func() {
