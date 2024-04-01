@@ -22,30 +22,32 @@ type DatabaseInterface interface {
 	SaveCartItems([]entity.CartItem) error
 	GetProductData() []entity.Product
 	GetProductByName(name string) (entity.Product, error)
+	RemoveCartItem(productName string) error
+	ResetCart() error
 }
 
 type Database struct {
-	Data []entity.CartItem
+	Cart []entity.CartItem
 }
 
 func NewDatabase() *Database {
 	return &Database{}
 }
 
-func (s *Database) GetCartItems() ([]entity.CartItem, error) {
-	return s.Data, nil
+func (db *Database) GetCartItems() ([]entity.CartItem, error) {
+	return db.Cart, nil
 }
 
-func (s *Database) SaveCartItems(data []entity.CartItem) error {
-	s.Data = data
+func (db *Database) SaveCartItems(cartItems []entity.CartItem) error {
+	db.Cart = cartItems
 	return nil
 }
 
-func (s *Database) GetProductData() []entity.Product {
+func (db *Database) GetProductData() []entity.Product {
 	return productData
 }
 
-func (s *Database) GetProductByName(name string) (entity.Product, error) {
+func (db *Database) GetProductByName(name string) (entity.Product, error) {
 	var product entity.Product
 	for _, p := range productData {
 		if p.Name == name {
@@ -54,4 +56,19 @@ func (s *Database) GetProductByName(name string) (entity.Product, error) {
 	}
 
 	return product, errors.New("product not found")
+}
+
+func (db *Database) RemoveCartItem(productName string) error {
+	for i, item := range db.Cart {
+		if item.ProductName == productName {
+			db.Cart = append(db.Cart[:i], db.Cart[i+1:]...)
+			return nil
+		}
+	}
+	return errors.New("product not found in cart")
+}
+
+func (db *Database) ResetCart() error {
+	db.Cart = nil
+	return nil
 }
