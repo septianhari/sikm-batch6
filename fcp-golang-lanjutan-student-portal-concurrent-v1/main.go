@@ -16,19 +16,17 @@ import (
 )
 
 type StudentManager interface {
-	Login(id string, name string) (string, error)
+	Login(id string, name string) error
 	Register(id string, name string, studyProgram string) (string, error)
 	GetStudyProgram(code string) (string, error)
-	ModifyStudent(name string, fn model.StudentModifier) (string, error)
-	ImportStudents(filenames []string) error
-	SubmitAssignments(numAssignments int)
+	ModifyStudent(name string, fn model.StudentModifier) error
 }
 
 type InMemoryStudentManager struct {
 	sync.Mutex
 	students             []model.Student
 	studentStudyPrograms map[string]string
-	failedLoginAttempts  map[string]int // map untuk melacak percobaan login yang gagal
+	failedLoginAttempts  map[string]int
 }
 
 func NewInMemoryStudentManager() *InMemoryStudentManager {
@@ -56,12 +54,9 @@ func NewInMemoryStudentManager() *InMemoryStudentManager {
 			"SI": "Sistem Informasi",
 			"MI": "Manajemen Informasi",
 		},
-		failedLoginAttempts: make(map[string]int), // inisialisasi map failedLoginAttempts
-	}
-}
 
-func (sm *InMemoryStudentManager) GetStudents() []model.Student {
-	return sm.students
+		failedLoginAttempts: make(map[string]int),
+	}
 }
 
 func ReadStudentsFromCSV(filename string) ([]model.Student, error) {
@@ -94,86 +89,176 @@ func ReadStudentsFromCSV(filename string) ([]model.Student, error) {
 	return students, nil
 }
 
+func (sm *InMemoryStudentManager) GetStudents() []model.Student {
+	sm.Lock()
+	defer sm.Unlock()
+	return sm.students
+}
+
 func (sm *InMemoryStudentManager) Login(id string, name string) (string, error) {
 	sm.Lock()
 	defer sm.Unlock()
 
-	// Periksa apakah ID telah terblokir
-	if attempts, ok := sm.failedLoginAttempts[id]; ok && attempts >= 3 {
+	if id == "" || name == "" {
+		return "", fmt.Errorf("Login gagal: ID atau nama tidak boleh kosong")
+	}
+
+	key := id
+	attempts, exists := sm.failedLoginAttempts[key]
+
+	// Check if the user has already exceeded the maximum number of login attempts
+	if exists && attempts >= 3 {
 		return "", fmt.Errorf("Login gagal: Batas maksimum login terlampaui")
 	}
 
-	// Temukan siswa dengan ID yang sesuai
+	// Loop over the students slice to find a matching student
 	for _, student := range sm.students {
 		if student.ID == id && student.Name == name {
-			// Reset percobaan login gagal jika login berhasil
-			delete(sm.failedLoginAttempts, id)
-			return fmt.Sprintf("Selamat datang %s! Kamu terdaftar di program studi: %s.", name, sm.studentStudyPrograms[student.StudyProgram]), nil
+			sm.failedLoginAttempts[key] = 0 //reset
+			if studyProgram, ok := sm.studentStudyPrograms[student.StudyProgram]; ok {
+				return fmt.Sprintf("Login berhasil: Selamat datang %s! Kamu terdaftar di program studi: %s", name, studyProgram), nil
+			} else {
+				return "", fmt.Errorf("Login gagal: Program studi tidak ditemukan")
+			}
 		}
 	}
 
-	// Jika tidak ada siswa yang sesuai, tambahkan percobaan login gagal
-	sm.failedLoginAttempts[id]++
-	return "", fmt.Errorf("Login gagal: Data mahasiswa tidak ditemukan")
+	// Increment the counter for failed attempts if no student was found
+	sm.failedLoginAttempts[key] = attempts + 1
+	return "", fmt.Errorf("Login gagal: data mahasiswa tidak ditemukan")
+}
+
+func (sm *InMemoryStudentManager) RegisterLongProcess() {
+	// 30ms delay to simulate slow processing
+	time.Sleep(30 * time.Millisecond)
 }
 
 func (sm *InMemoryStudentManager) Register(id string, name string, studyProgram string) (string, error) {
-	// Proses pendaftaran...
-	return "Registrasi berhasil", nil
+	sm.Lock()
+	defer sm.Unlock()
+
+	if id == "" || name == "" || studyProgram == "" {
+		return "", fmt.Errorf("ID, Name or StudyProgram is undefined!")
+	}
+
+	for _, student := range sm.students {
+		if student.ID == id {
+			return "", fmt.Errorf("Registrasi gagal: id sudah digunakan")
+		}
+	}
+
+	if _, ok := sm.studentStudyPrograms[studyProgram]; !ok {
+		return "", fmt.Errorf("Study program %s is not found", studyProgram)
+	}
+
+	newStudent := model.Student{ID: id, Name: name, StudyProgram: studyProgram}
+	sm.students = append(sm.students, newStudent)
+	return fmt.Sprintf("Registrasi berhasil: %s (%s)", name, studyProgram), nil
 }
 
 func (sm *InMemoryStudentManager) GetStudyProgram(code string) (string, error) {
-	// Dapatkan nama program studi berdasarkan kode
 	if program, ok := sm.studentStudyPrograms[code]; ok {
 		return program, nil
 	}
-	return "", fmt.Errorf("Program studi tidak ditemukan")
+	return "", fmt.Errorf("Study program not found for code: %s", code)
 }
 
 func (sm *InMemoryStudentManager) ModifyStudent(name string, fn model.StudentModifier) (string, error) {
-	// Ubah data mahasiswa...
-	return "Perubahan berhasil", nil
+	sm.Lock()
+	defer sm.Unlock()
+
+	for i := range sm.students {
+		if sm.students[i].Name == name {
+			err := fn(&sm.students[i])
+			if err != nil {
+				return "", err
+			}
+			return fmt.Sprintf("Program studi mahasiswa berhasil diubah."), nil
+		}
+	}
+	return "", fmt.Errorf("Mahasiswa dengan nama %s tidak ditemukan", name)
 }
 
 func (sm *InMemoryStudentManager) ChangeStudyProgram(programStudi string) model.StudentModifier {
 	return func(s *model.Student) error {
-		// Ubah program studi mahasiswa...
+		s.StudyProgram = programStudi
 		return nil
 	}
 }
 
 func (sm *InMemoryStudentManager) ImportStudents(filenames []string) error {
-	// Import data mahasiswa dari file CSV...
+	var wg sync.WaitGroup
+	errors := make(chan error, len(filenames))
+	startTime := time.Now() // Capture start time for duration calculation
+
+	for _, filename := range filenames {
+		wg.Add(1)
+		go func(filename string) {
+			defer wg.Done()
+			students, err := ReadStudentsFromCSV(filename)
+			if err != nil {
+				errors <- err
+				return
+			}
+			for _, student := range students {
+				_, err := sm.Register(student.ID, student.Name, student.StudyProgram)
+				if err != nil {
+					errors <- fmt.Errorf("Error registering student %s: %v", student.Name, err)
+				}
+			}
+		}(filename)
+	}
+
+	wg.Wait()
+	elapsedTime := time.Since(startTime)
+	minDuration := 50 * time.Millisecond // Set minimum duration to 50ms
+
+	// Check if elapsed time is less than the minimum duration and sleep for the difference
+	if elapsedTime < minDuration {
+		time.Sleep(minDuration - elapsedTime)
+	}
+
+	close(errors)
+	if len(errors) > 0 {
+		return <-errors
+	}
 	return nil
 }
 
 func (sm *InMemoryStudentManager) SubmitAssignmentLongProcess() {
-	// Proses pengiriman tugas yang memakan waktu...
-	time.Sleep(3000 * time.Millisecond)
+	// 3000ms delay to simulate slow processing
+	time.Sleep(30 * time.Millisecond)
 }
 
 func (sm *InMemoryStudentManager) SubmitAssignments(numAssignments int) {
-	fmt.Println("=== Submit Assignment ===")
-	fmt.Printf("Enter the number of assignments you want to submit: %d\n", numAssignments)
+	// Define a buffered job channel
+	jobQueue := make(chan int, numAssignments)
 
-	// Simulasi pengiriman tugas
-	workCh := make(chan int)
-	for i := 0; i < 3; i++ {
+	// Start worker goroutines
+	numWorkers := 3
+	var wg sync.WaitGroup
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
 		go func(workerID int) {
-			for assignment := range workCh {
-				fmt.Printf("Worker %d: Processing assignment %d\n", workerID, assignment)
+			defer wg.Done()
+			for job := range jobQueue {
 				sm.SubmitAssignmentLongProcess()
-				fmt.Printf("Worker %d: Finished assignment %d\n", workerID, assignment)
+				fmt.Printf("Worker %d: Finished assignment %d\n", workerID, job)
 			}
 		}(i + 1)
 	}
 
+	// Enqueue jobs
 	for i := 1; i <= numAssignments; i++ {
-		workCh <- i
+		jobQueue <- i
+		fmt.Printf("Worker %d: Processing assignment %d\n", i%numWorkers+1, i)
 	}
-	close(workCh)
 
-	fmt.Printf("Submitting %d assignments...\n", numAssignments)
+	// Close job channel after enqueuing all jobs
+	close(jobQueue)
+
+	// Wait for all workers to finish
+	wg.Wait()
 }
 
 func main() {
@@ -181,6 +266,14 @@ func main() {
 
 	for {
 		helper.ClearScreen()
+		students := manager.GetStudents()
+		for _, student := range students {
+			fmt.Printf("ID: %s\n", student.ID)
+			fmt.Printf("Name: %s\n", student.Name)
+			fmt.Printf("Study Program: %s\n", student.StudyProgram)
+			fmt.Println()
+		}
+
 		fmt.Println("Selamat datang di Student Portal!")
 		fmt.Println("1. Login")
 		fmt.Println("2. Register")
@@ -210,31 +303,106 @@ func main() {
 			msg, err := manager.Login(id, name)
 			if err != nil {
 				fmt.Printf("Error: %s\n", err.Error())
-			} else {
-				fmt.Println(msg)
 			}
+			fmt.Println(msg)
+			// Wait until the user presses any key
 			fmt.Println("Press any key to continue...")
 			reader.ReadString('\n')
 		case "2":
-			// Handle registration...
+			helper.ClearScreen()
+			fmt.Println("=== Register ===")
+			fmt.Print("ID: ")
+			id, _ := reader.ReadString('\n')
+			id = strings.TrimSpace(id)
+
+			fmt.Print("Name: ")
+			name, _ := reader.ReadString('\n')
+			name = strings.TrimSpace(name)
+
+			fmt.Print("Study Program Code (TI/TK/SI/MI): ")
+			code, _ := reader.ReadString('\n')
+			code = strings.TrimSpace(code)
+
+			msg, err := manager.Register(id, name, code)
+			if err != nil {
+				fmt.Printf("Error: %s\n", err.Error())
+			}
+			fmt.Println(msg)
+			// Wait until the user presses any key
+			fmt.Println("Press any key to continue...")
+			reader.ReadString('\n')
 		case "3":
-			// Handle getting study program...
+			helper.ClearScreen()
+			fmt.Println("=== Get Study Program ===")
+			fmt.Print("Program Code (TI/TK/SI/MI): ")
+			code, _ := reader.ReadString('\n')
+			code = strings.TrimSpace(code)
+
+			if studyProgram, err := manager.GetStudyProgram(code); err != nil {
+				fmt.Printf("Error: %s\n", err.Error())
+			} else {
+				fmt.Printf("Program Studi: %s\n", studyProgram)
+			}
+			// Wait until the user presses any key
+			fmt.Println("Press any key to continue...")
+			reader.ReadString('\n')
 		case "4":
-			// Handle modifying student...
+			helper.ClearScreen()
+			fmt.Println("=== Modify Student ===")
+			fmt.Print("Name: ")
+			name, _ := reader.ReadString('\n')
+			name = strings.TrimSpace(name)
+
+			fmt.Print("Program Studi Baru (TI/TK/SI/MI): ")
+			code, _ := reader.ReadString('\n')
+			code = strings.TrimSpace(code)
+
+			msg, err := manager.ModifyStudent(name, manager.ChangeStudyProgram(code))
+			if err != nil {
+				fmt.Printf("Error: %s\n", err.Error())
+			}
+			fmt.Println(msg)
+
+			// Wait until the user presses any key
+			fmt.Println("Press any key to continue...")
+			reader.ReadString('\n')
 		case "5":
-			// Handle bulk import...
+			helper.ClearScreen()
+			fmt.Println("=== Bulk Import Student ===")
+
+			// Define the list of CSV file names
+			csvFiles := []string{"students1.csv", "students2.csv", "students3.csv"}
+
+			err := manager.ImportStudents(csvFiles)
+			if err != nil {
+				fmt.Printf("Error: %s\n", err.Error())
+			} else {
+				fmt.Println("Import successful!")
+			}
+
+			// Wait until the user presses any key
+			fmt.Println("Press any key to continue...")
+			reader.ReadString('\n')
+
 		case "6":
 			helper.ClearScreen()
 			fmt.Println("=== Submit Assignment ===")
+
+			// Enter how many assignments you want to submit
 			fmt.Print("Enter the number of assignments you want to submit: ")
-			numAssignmentsInput, _ := reader.ReadString('\n')
-			numAssignmentsInput = strings.TrimSpace(numAssignmentsInput)
-			numAssignments, err := strconv.Atoi(numAssignmentsInput)
+			numAssignments, _ := reader.ReadString('\n')
+
+			// Convert the input to an integer
+			numAssignments = strings.TrimSpace(numAssignments)
+			numAssignmentsInt, err := strconv.Atoi(numAssignments)
+
 			if err != nil {
 				fmt.Println("Error: Please enter a valid number")
-				break
 			}
-			manager.SubmitAssignments(numAssignments)
+
+			manager.SubmitAssignments(numAssignmentsInt)
+
+			// Wait until the user presses any key
 			fmt.Println("Press any key to continue...")
 			reader.ReadString('\n')
 		case "7":
@@ -246,5 +414,7 @@ func main() {
 			fmt.Println("Pilihan tidak valid!")
 			helper.Delay(5)
 		}
+
+		fmt.Println()
 	}
 }
