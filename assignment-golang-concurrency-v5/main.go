@@ -1,8 +1,8 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"time"
 )
 
 type RowData struct {
@@ -36,33 +36,31 @@ func GetTLD(domain string) (TLD string, IDN_TLD string) {
 }
 
 func ProcessGetTLD(website RowData, ch chan RowData, chErr chan error) {
-	TLD, IDN_TLD := GetTLD(website.Domain)
-
-	// jika website domain kosong
+	// Check for empty domain
 	if website.Domain == "" {
-		chErr <- fmt.Errorf("domain name is empty")
+		chErr <- errors.New("domain name is empty")
 		return
 	}
 
-	// jika valid bernilai false
+	// Check for invalid domain
 	if !website.Valid {
-		chErr <- fmt.Errorf("domain not valid")
+		chErr <- errors.New("domain not valid")
 		return
 	}
 
+	// Check for invalid RefIPs
 	if website.RefIPs == -1 {
-		chErr <- fmt.Errorf("domain RefIPs not valid")
+		chErr <- errors.New("domain RefIPs not valid")
 		return
 	}
 
-	ch <- RowData{
-		RankWebsite: website.RankWebsite,
-		Domain:      website.Domain,
-		TLD:         TLD,
-		IDN_TLD:     IDN_TLD,
-		Valid:       website.Valid,
-		RefIPs:      website.RefIPs,
-	}
+	// Fill TLD and IDN_TLD fields
+	TLD, IDN_TLD := GetTLD(website.Domain)
+	website.TLD = TLD
+	website.IDN_TLD = IDN_TLD
+
+	// Send the updated website data to the channel
+	ch <- website
 }
 
 // Gunakan variable ini sebagai goroutine di fungsi FilterAndGetDomain
@@ -71,22 +69,28 @@ var FuncProcessGetTLD = ProcessGetTLD
 func FilterAndFillData(TLD string, data []RowData) ([]RowData, error) {
 	ch := make(chan RowData, len(data))
 	errCh := make(chan error)
-	rowData := []RowData{}
 
+	// Start goroutines to process each website data
 	for _, website := range data {
-		go FuncProcessGetTLD(website, ch, errCh)
+		go ProcessGetTLD(website, ch, errCh)
+	}
 
-		if website.Domain == "" || !website.Valid || website.RefIPs == -1 {
-			return rowData, <-errCh
-		}
-		time.Sleep(250 * time.Millisecond)
+	// Collect processed website data
+	var processedData []RowData
+	for i := 0; i < len(data); i++ {
 		select {
-		case value := <-ch:
-			rowData = append(rowData, value)
+		case website := <-ch:
+			// Check if the website matches the provided TLD
+			if website.TLD == TLD {
+				processedData = append(processedData, website)
+			}
+		case err := <-errCh:
+			// Return the first error encountered
+			return nil, err
 		}
 	}
 
-	return rowData, nil
+	return processedData, nil
 }
 
 // gunakan untuk melakukan debugging
