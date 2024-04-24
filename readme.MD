@@ -20,7 +20,7 @@ Repository ini terstruktur untuk memudahkan Anda dalam mempelajari Golang. Berik
 
 - **/bab**: Direktori ini berisi materi pembelajaran yang terorganisir dalam bentuk bab-bab. Setiap bab mungkin berfokus pada topik tertentu dalam bahasa Go.
 - **/contoh-kode**: Direktori ini berisi contoh-contoh kode yang dapat Anda pelajari dan eksperimenkan sendiri.
-- **/sumber-daya**: Direktori ini berisi berbagai sumber daya tambahan seperti buku, video tutorial, dan tautan yang berguna untuk memperdalam pemahaman Anda tentang Golang.
+- **/sumber-daya**: Direktori ini berisi sumber dari proses belajar saya selama mengikuti program MBKM Batch 6 dengan mitra Ruang Guru.
 
 ## Cara Menggunakan Repository Ini
 
