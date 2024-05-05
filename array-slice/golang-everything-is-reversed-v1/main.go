@@ -7,7 +7,7 @@ func ReverseArray(arr [5]int) [5]int {
 	for i := 0; i < len(arr); i++ {
 		result[i] = arr[len(arr)-1-i]
 	}
-	return result // TODO: replace this
+	return result // TODO: replace this with your own
 }
 
 func ReverseNumber(number int) int {
