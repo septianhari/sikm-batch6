@@ -20,373 +20,210 @@ time, mark, audio, video {
 	margin: 0;
 	padding: 0;
 	border: 0;
-	font-size: 100%;/* style.css */
+	font-size: 100%;
+}
 
-	/* Reset default margin and padding */
-	body, h1, h2, h3, p, ul, li, figure {
-		margin: 0;
-		padding: 0;
-	}
-	
-	/* Global Styles */
-	body {
-		font-family: Arial, sans-serif;
-		line-height: 1.6;
-		background-color: #f8f8f8;
-		color: #333;
-	}
-	
-	.container {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 0 20px;
-	}
-	
-	/* Header Styles */
-	header {
-		background-color: #333;
-		color: #fff;
-		padding: 20px 0;
-	}
-	
-	header h1 {
-		font-size: 24px;
-	}
-	
-	nav ul {
-		list-style-type: none;
-	}
-	
-	nav ul li {
-		display: inline;
-		margin-right: 20px;
-	}
-	
-	nav ul li a {
-		color: #fff;
-		text-decoration: none;
-	}
-	
-	/* Home Section Styles */
-	#home {
-		text-align: center;
-		padding: 50px 0;
-	}
-	
-	#home-text {
-		max-width: 600px;
-		margin: 0 auto;
-	}
-	
-	#home-text p {
-		color: #777;
-	}
-	
-	#profile {
-		width: 200px;
-		border-radius: 50%;
-		margin-top: 20px;
-	}
-	
-	/* About Section Styles */
-	#about {
-		background-color: #fff;
-		padding: 50px 0;
-	}
-	
-	/* Skills Section Styles */
-	#skills {
-		background-color: #f8f8f8;
-		padding: 50px 0;
-	}
-	
-	.card-skills {
-		background-color: #fff;
-		padding: 20px;
-		margin: 20px;
-		text-align: center;
-		box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-	}
-	
-	.card-skills img {
-		width: 100px;
-		margin-bottom: 10px;
-	}
-	
-	/* Contact Section Styles */
-	#contact {
-		padding: 50px 0;
-	}
-	
-	form {
-		max-width: 400px;
-		margin: 0 auto;
-	}
-	
-	label {
-		display: block;
-		margin-bottom: 10px;
-	}
-	
-	input[type="text"],
-	input[type="email"],
-	textarea {
-		width: 100%;
-		padding: 10px;
-		margin-bottom: 20px;
-		border: 1px solid #ccc;
-		border-radius: 5px;
-	}
-	
-	input[type="submit"] {
-		background-color: #333;
-		color: #fff;
-		border: none;
-		padding: 10px 20px;
-		cursor: pointer;
-	}
-	
-	input[type="submit"]:hover {
-		background-color: #555;
-	}
-	
-	font: inherit;
-	vertical-align: baseline;
-}
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure, 
-footer, header, hgroup, menu, nav, section {
-	display: block;
-}
+/* Global Styles */
 body {
-	line-height: 1;
-}
-ol, ul {
-	list-style: none;
-}
-blockquote, q {
-	quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-	content: '';
-	content: none;
-}
-table {
-	border-collapse: collapse;
-	border-spacing: 0;
+	font-family: 'Montserrat', sans-serif;
+	line-height: 1.6;
+	background-color: #f5f5f5; /* Warna latar belakang */
+	color: #444; /* Warna teks */
 }
 
-/* Font Import */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,600&display=swap');
-
-body {
-    font-family: 'Montserrat', sans-serif;
-    background-color: white;
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 20px;
 }
 
-img {
-	width: 100px;
-}
-
-a {
-	text-decoration: none;
-	color: black;
-}
-
-h2 {
-	font-size: 24px;
-	font-weight: 700;
-}
-
-a:visited {
-	text-decoration: none;
-	color: navy;
-}
-
-section {
-	margin: 50px;
-}
-
+/* Header Styles */
 header {
-	display: flex;
-	flex-wrap: wrap;
-    background-color: gray;
-	justify-content: space-between;
+	background-color: #53a9bc;
+	color: #fff;
+	padding: 20px;
 }
 
 header h1 {
-	margin: 10px 10px 10px 50px;
-	font-weight: 700;
+	font-size: 24px;
+	font-weight: 700; /* Menjadikan judul header lebih berat */
+	margin-right: 20px; /* Memberi sedikit ruang di sebelah kanan judul */
+
+	/* Efefek drop-shadow */
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+
 }
 
-header ul {
-	display: flex;
-	flex-wrap: wrap;
-	margin: 10px 50px 10px 10px;
+nav ul {
+	list-style-type: none;
 }
 
-header ul li {
-	margin-left: 20px;
+nav ul li {
+	display: inline;
+	margin-right: 20px;
 }
 
-header h1 a, header ul li a {
-	display: block;
-	width: 100px;
-	text-align: center;
-	background-color: yellow;
-	padding: 10px;
-	border-radius: 8px;
+nav ul li a {
+	color: black;
+	text-decoration: none;
+	transition: color 0.3s; 
 }
 
+nav ul li a:hover {
+	color: rgb(247, 247, 247); 
+}
+
+/* Home Section Styles */
 #home {
-	display: flex;
-	padding: 10px;
-	position: relative;
-	flex-wrap: wrap;
-	justify-content: flex-start;
+	text-align: center;
+	padding: 50px 0;
 }
 
 #home-text {
-	margin: 0;
-	position: absolute;
-	top: 50%;
-	left: 30%;
-	-ms-transform: translateY(-50%);
-	transform: translateY(-50%);
-	width: 65%;
-}
-
-#home-text h2 {
-	margin: 10px 0 10px 0;
+	max-width: 600px;
+	margin: 0 auto;
 }
 
 #home-text p {
-	line-height: normal;
-	font-weight: 500;
-	margin: 0 0 10px 0;
-}
-
-#home-text a {
-	display: block;
-	width: 100px;
-	height: 25px;
-	border-radius: 8px;
-	text-align: center;
-	background-color: navy;
-	color: white;
+	color: #666; 
 }
 
 #profile {
-	width: 300px;
-    height: 300px;
+	width: 200px;
+	border-radius: 50%;
+	margin-top: 20px;
 }
 
-/* About */
+/* About Section Styles */
 #about {
-	width: 70%;
-	margin-left: auto;
-	margin-right: auto;
+	background-color: #fff;
+	padding: 50px 0;
+	text-align: center; /
 }
 
-#about h2, #skills h2, footer h2 {
-	margin-bottom: 10px;
-}
-
-#about p {
-	line-height: normal;
-	text-align: center;
-}
-
-/* Skills */
-#skills h4 {
-	margin: 10px 0 5px 0;
-	font-weight: 700;
-}
-
-#skills h3, h2 {
-	font-size: 20px;
-	font-weight: 700;
-	text-align: center;
-	margin-bottom: 20px;
-}
-
-#skills-details {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-around;
+/* Skills Section Styles */
+#skills {
+	background-color: #f8f8f8;
+	padding: 50px 0;
+	text-align: center; 
 }
 
 .card-skills {
-	width: 250px;
-	background-color: gainsboro;
-	padding: 25px;
-	box-sizing: border-box;
-	border-radius: 10px;
-	margin: 30px;
+	background-color: #fff;
+	padding: 20px;
+	margin: 20px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .card-skills img {
-	display: block;
-	margin: 20px auto 20px auto;
+	width: 100px;
+	margin-bottom: 10px;
 }
 
-.card-skills p {
-	line-height: normal;
-}
-
-/* Contact US */
+/* Contact Section Styles */
 #contact {
-	text-align: center;
-}
-
-#name, #email, #message, #contact h2 {
-	margin-bottom: 15px;
+	padding: 50px 0;
+	text-align: center; 
 }
 
 form {
-	width: 70%;
-	margin-left: auto;
-	margin-right: auto;
+	max-width: 400px;
+	margin: 0 auto;
 }
 
-/* Footer */
+label {
+	display: block;
+	margin-bottom: 10px;
+}
 
-footer {
-	text-align: center;
+input[type="text"],
+input[type="email"],
+textarea {
+	width: 100%;
+	padding: 10px;
 	margin-bottom: 20px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
 }
 
-footer a {
-	margin-left: 20px;
+input[type="submit"] {
+	background-color: #333;
+	color: #fff;
+	border: none;
+	padding: 10px 20px;
+	cursor: pointer;
+	border-radius: 5px;
+}
+
+input[type="submit"]:hover {
+	background-color: #555;
 }
 
 
-/* Media Query Handphone 320px */
-@media only screen and (max-width: 320px) {
-	body {
-		margin-left: auto;
-		margin-right: auto;
+/* Ripple Animation */
+@keyframes ripple {
+	0% {
+	  transform: scale(1);
+	  opacity: 1;
 	}
+	100% {
+	  transform: scale(50);
+	  opacity: 0;
+	}
+  }
+  
 
-	header {
-		margin-left: auto;
-		margin-right: auto;
-	}
+  /* Footer Styles */
+footer {
+	position: relative;
+	background-color: #333;
+	color: #fff;
+	padding: 20px;
+	text-align: center;
+  }
+  
+  /* Social Media Links */
+  footer h2 {
+	margin-bottom: 10px;
+  }
+  
+  footer div {
+	display: flex;
+	justify-content: center;
+  }
+  
+  footer a {
+	margin: 0 10px;
+	color: #fff;
+	text-decoration: none;
+	transition: color 0.3s; 
+  }
+  
+  footer a:hover {
+	color: navy;
+  }
 
-	#profile {
-		width: 200px;
-		height: 200px;
-	}
 
-	#home-text {
-		width: 100%;
-		left: 0px;
-		top: 350px;
-		/* background-color: black; */
-	}
-
-	#about {
-		margin-top: 300px;
-	}
-}
+  footer {
+	position: relative; 
+	background-color: #2f9ae0;
+	color: #f0f1f3;
+	padding: 20px;
+	text-align: center;
+	overflow: hidden; 
+  }
+  
+  /* Ripple Effect */
+  /* footer::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 300px; 
+	height: 300px; 
+	background-color: #31b9ef; 
+	border-radius: 50%; 
+	transform: translate(-50%, -50%);
+	animation: ripple 1.5s linear infinite; 
+  }
+   */
