@@ -1,0 +1,263 @@
+/* Reset CSS */
+/* http://meyerweb.com/eric/tools/css/reset/ 
+    v2.0 | 20110126
+    License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/* Font Import */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,600&display=swap');
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: white;
+}
+
+img {
+	width: 100px;
+}
+
+a {
+	text-decoration: none;
+	color: black;
+}
+
+h2 {
+	font-size: 24px;
+	font-weight: 700;
+}
+
+a:visited {
+	text-decoration: none;
+	color: navy;
+}
+
+section {
+	margin: 50px;
+}
+
+header {
+	display: flex;
+	flex-wrap: wrap;
+    background-color: gray;
+	justify-content: space-between;
+}
+
+header h1 {
+	margin: 10px 10px 10px 50px;
+	font-weight: 700;
+}
+
+header ul {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 10px 50px 10px 10px;
+}
+
+header ul li {
+	margin-left: 20px;
+}
+
+header h1 a, header ul li a {
+	display: block;
+	width: 100px;
+	text-align: center;
+	background-color: yellow;
+	padding: 10px;
+	border-radius: 8px;
+}
+
+#home {
+	display: flex;
+	padding: 10px;
+	position: relative;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+}
+
+#home-text {
+	margin: 0;
+	position: absolute;
+	top: 50%;
+	left: 30%;
+	-ms-transform: translateY(-50%);
+	transform: translateY(-50%);
+	width: 65%;
+}
+
+#home-text h2 {
+	margin: 10px 0 10px 0;
+}
+
+#home-text p {
+	line-height: normal;
+	font-weight: 500;
+	margin: 0 0 10px 0;
+}
+
+#home-text a {
+	display: block;
+	width: 100px;
+	height: 25px;
+	border-radius: 8px;
+	text-align: center;
+	background-color: navy;
+	color: white;
+}
+
+#profile {
+	width: 300px;
+    height: 300px;
+}
+
+/* About */
+#about {
+	width: 70%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#about h2, #skills h2, footer h2 {
+	margin-bottom: 10px;
+}
+
+#about p {
+	line-height: normal;
+	text-align: center;
+}
+
+/* Skills */
+#skills h4 {
+	margin: 10px 0 5px 0;
+	font-weight: 700;
+}
+
+#skills h3, h2 {
+	font-size: 20px;
+	font-weight: 700;
+	text-align: center;
+	margin-bottom: 20px;
+}
+
+#skills-details {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+}
+
+.card-skills {
+	width: 250px;
+	background-color: gainsboro;
+	padding: 25px;
+	box-sizing: border-box;
+	border-radius: 10px;
+	margin: 30px;
+}
+
+.card-skills img {
+	display: block;
+	margin: 20px auto 20px auto;
+}
+
+.card-skills p {
+	line-height: normal;
+}
+
+/* Contact US */
+#contact {
+	text-align: center;
+}
+
+#name, #email, #message, #contact h2 {
+	margin-bottom: 15px;
+}
+
+form {
+	width: 70%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Footer */
+
+footer {
+	text-align: center;
+	margin-bottom: 20px;
+}
+
+footer a {
+	margin-left: 20px;
+}
+
+
+/* Media Query Handphone 320px */
+@media only screen and (max-width: 320px) {
+	body {
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	header {
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	#profile {
+		width: 200px;
+		height: 200px;
+	}
+
+	#home-text {
+		width: 100%;
+		left: 0px;
+		top: 350px;
+		/* background-color: black; */
+	}
+
+	#about {
+		margin-top: 300px;
+	}
+}
