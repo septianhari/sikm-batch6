@@ -89,5 +89,10 @@ func (s *userService) Login(user *model.User) (token *string, err error) {
 }
 
 func (s *userService) GetUserTaskCategory() ([]model.UserTaskCategory, error) {
-	return nil, nil // TODO: replace this
+	userTaskCategories, err := s.userRepo.GetUserTaskCategory()
+	if err != nil {
+		return nil, err
+	}
+
+	return userTaskCategories, nil
 }

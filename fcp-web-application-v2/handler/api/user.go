@@ -51,9 +51,51 @@ func (u *userAPI) Register(c *gin.Context) {
 }
 
 func (u *userAPI) Login(c *gin.Context) {
-	// TODO: answer here
+	var loginReq model.LoginRequest
+
+	if err := c.BindJSON(&loginReq); err != nil {
+		c.JSON(http.StatusBadRequest, model.NewErrorResponse("invalid decode json"))
+		return
+	}
+
+	user, err := u.userService.Login(&model.User{
+		Email:    loginReq.Email,
+		Password: loginReq.Password,
+	})
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, model.NewErrorResponse("invalid email or password"))
+		return
+	}
+
+	token := u.userService.GenerateToken(user.ID)
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse("login success", map[string]string{
+		"access_token": token,
+	}))
 }
 
 func (u *userAPI) GetUserTaskCategory(c *gin.Context) {
-	// TODO: answer here
+	// Get the access token from the header
+	tokenString := c.Request.Header.Get("Authorization")
+
+	if len(tokenString) == 0 {
+		c.JSON(http.StatusUnauthorized, model.NewErrorResponse("access token is missing"))
+		return
+	}
+
+	// Validate the access token
+	claims, err := u.userService.ValidateToken(tokenString)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, model.NewErrorResponse("invalid access token"))
+		return
+	}
+
+	// Get the user task category
+	userTaskCategory, err := u.userService.GetUserTaskCategory(claims.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.NewErrorResponse("error internal server"))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse("get user task category success", userTaskCategory))
 }

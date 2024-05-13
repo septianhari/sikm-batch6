@@ -31,11 +31,24 @@ func (c *categoryService) Store(category *model.Category) error {
 }
 
 func (c *categoryService) Update(id int, category model.Category) error {
-	return nil // TODO: replace this
+	categoryFound, err := c.categoryRepository.GetByID(id)
+	if err != nil {
+		return err
+	}
+
+	categoryFound.Name = category.Name
+	categoryFound.Description = category.Description
+
+	return c.categoryRepository.Update(id, categoryFound)
 }
 
 func (c *categoryService) Delete(id int) error {
-	return nil // TODO: replace this
+	err := c.categoryRepository.Delete(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *categoryService) GetByID(id int) (*model.Category, error) {
@@ -48,5 +61,10 @@ func (c *categoryService) GetByID(id int) (*model.Category, error) {
 }
 
 func (c *categoryService) GetList() ([]model.Category, error) {
-	return nil, nil // TODO: replace this
+	result, err := c.categoryRepository.GetList()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
