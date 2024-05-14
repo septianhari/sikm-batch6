@@ -4,6 +4,7 @@ import (
 	"a21hc3NpZ25tZW50/model"
 	"a21hc3NpZ25tZW50/service"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,9 +52,39 @@ func (u *userAPI) Register(c *gin.Context) {
 }
 
 func (u *userAPI) Login(c *gin.Context) {
-	// TODO: answer here
+	var user model.User
+
+	if err := c.BindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, model.NewErrorResponse("invalid decode json"))
+		return
+	}
+
+	if user.Email == "" || user.Password == "" {
+		c.JSON(http.StatusBadRequest, model.NewErrorResponse("email or password is empty"))
+		return
+	}
+
+	token, err := u.userService.Login(&user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.NewErrorResponse("error internal server"))
+		return
+	}
+
+	expirationTime := time.Now().Add(24 * time.Hour)
+	c.SetCookie("session_token", *token, int(expirationTime.Unix()), "/", "localhost", false, true)
+
+	c.JSON(http.StatusOK, gin.H{
+		"user_id": user.ID,
+		"message": "login success",
+	})
 }
 
 func (u *userAPI) GetUserTaskCategory(c *gin.Context) {
-	// TODO: answer here
+	categories, err := u.userService.GetUserTaskCategory()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.NewErrorResponse("error internal server"))
+		return
+	}
+
+	c.JSON(http.StatusOK, categories)
 }
