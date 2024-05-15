@@ -1,12 +1,13 @@
 package repository
 
 import (
-	"a21hc3NpZ25tZW50/db/filebased"
 	"a21hc3NpZ25tZW50/model"
+
+	"gorm.io/gorm"
 )
 
 type CategoryRepository interface {
-	Store(category *model.Category) error
+	Store(Category *model.Category) error
 	Update(id int, category model.Category) error
 	Delete(id int) error
 	GetByID(id int) (*model.Category, error)
@@ -14,20 +15,24 @@ type CategoryRepository interface {
 }
 
 type categoryRepository struct {
-	filebasedDb *filebased.Data
+	db *gorm.DB
 }
 
-func NewCategoryRepo(filebasedDb *filebased.Data) *categoryRepository {
-	return &categoryRepository{filebasedDb}
+func NewCategoryRepo(db *gorm.DB) *categoryRepository {
+	return &categoryRepository{db}
 }
 
-func (c *categoryRepository) Store(category *model.Category) error {
-	c.filebasedDb.StoreCategory(*category)
+func (c *categoryRepository) Store(Category *model.Category) error {
+	err := c.db.Create(Category).Error
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (c *categoryRepository) Update(id int, category model.Category) error {
-	err := c.filebasedDb.UpdateCategory(id, category)
+	err := c.db.Model(&model.Category{}).Where("id = ?", id).Update("name", category.Name).Error
 	if err != nil {
 		return err
 	}
@@ -35,7 +40,7 @@ func (c *categoryRepository) Update(id int, category model.Category) error {
 }
 
 func (c *categoryRepository) Delete(id int) error {
-	err := c.filebasedDb.DeleteCategory(id)
+	err := c.db.Where("id = ?", id).Delete(&model.Category{}).Error
 	if err != nil {
 		return err
 	}
@@ -43,17 +48,23 @@ func (c *categoryRepository) Delete(id int) error {
 }
 
 func (c *categoryRepository) GetByID(id int) (*model.Category, error) {
-	category, err := c.filebasedDb.GetCategoryByID(id)
+	var Category model.Category
+	err := c.db.Where("id = ?", id).First(&Category).Error
 	if err != nil {
 		return nil, err
 	}
-	return category, nil
+
+	return &Category, nil
 }
 
 func (c *categoryRepository) GetList() ([]model.Category, error) {
-	categories, err := c.filebasedDb.GetCategories()
+
+	categories := []model.Category{}
+
+	err := c.db.Find(&categories).Error
 	if err != nil {
-		return nil, err
+		return []model.Category{}, err
 	}
+
 	return categories, nil
 }

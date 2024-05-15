@@ -1,9 +1,10 @@
 package repository
 
 import (
-	"a21hc3NpZ25tZW50/db/filebased"
 	"a21hc3NpZ25tZW50/model"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type SessionRepository interface {
@@ -12,51 +13,85 @@ type SessionRepository interface {
 	UpdateSessions(session model.Session) error
 	SessionAvailEmail(email string) (model.Session, error)
 	SessionAvailToken(token string) (model.Session, error)
-	TokenValidity(token string) (model.Session, error)
+	TokenExpired(session model.Session) bool
 }
 
 type sessionsRepo struct {
-	filebasedDb *filebased.Data
+	db *gorm.DB
 }
 
-func NewSessionsRepo(filebasedDb *filebased.Data) *sessionsRepo {
-	return &sessionsRepo{filebasedDb}
+func NewSessionsRepo(db *gorm.DB) *sessionsRepo {
+	return &sessionsRepo{db}
 }
 
-func (s *sessionsRepo) AddSessions(session model.Session) error {
-	// Implementasi untuk menyimpan data sesuai parameter ke tabel sessions
-	return nil // TODO:
+func (u *sessionsRepo) AddSessions(session model.Session) error {
+	res := u.db.Create(&session)
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil // TODO: replace this
 }
 
-func (s *sessionsRepo) DeleteSession(token string) error {
-	// Implementasi untuk menghapus data sesuai target token dari parameter
-	return nil // TODO:
+func (u *sessionsRepo) DeleteSession(token string) error {
+	var session model.Session
+	res := u.db.Where("token = ?", token).First(&session)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	res = u.db.Delete(&session)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	return nil // TODO: replace this
 }
 
-func (s *sessionsRepo) UpdateSessions(session model.Session) error {
-	// Implementasi untuk mengubah data session sesuai parameter ke tabel sessions dengan kondisi sama antara email parameter dengan database
-	return nil // TODO:
+func (u *sessionsRepo) UpdateSessions(session model.Session) error {
+	var update model.Session
+	res := u.db.Where("email = ?", session.Email).First(&update)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	update.Token = session.Token
+	update.Email = session.Email
+	update.Expiry = session.Expiry
+	res = u.db.Save(&update)
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil // TODO: replace this
 }
 
-func (s *sessionsRepo) SessionAvailEmail(email string) (model.Session, error) {
-	// Implementasi untuk memeriksa apakah token tersedia pada tabel sessions sesuai dengan kolom email sama dengan nilai dari parameter
-	return model.Session{}, nil //
+func (u *sessionsRepo) SessionAvailEmail(email string) (model.Session, error) {
+	var session model.Session
+	res := u.db.Where("email = ?", email).First(&session)
+	if res.Error != nil {
+		return model.Session{}, res.Error
+	}
+
+	return session, nil // TODO: replace this
 }
 
-func (s *sessionsRepo) SessionAvailToken(token string) (model.Session, error) {
-	// Implementasi untuk memeriksa apakah token tersedia pada tabel sessions sesuai dengan kolom token sama dengan nilai dari parameter
-	return model.Session{}, nil // TODO:
+func (u *sessionsRepo) SessionAvailToken(token string) (model.Session, error) {
+	var session model.Session
+	res := u.db.Where("token = ?", token).First(&session)
+	if res.Error != nil {
+		return session, res.Error
+	}
+
+	return session, nil // TODO: replace this
 }
 
-func (s *sessionsRepo) TokenValidity(token string) (model.Session, error) {
-	// Implementasi untuk memvalidasi token
-	session, err := s.SessionAvailToken(token)
+func (u *sessionsRepo) TokenValidity(token string) (model.Session, error) {
+	session, err := u.SessionAvailToken(token)
 	if err != nil {
 		return model.Session{}, err
 	}
 
-	if s.TokenExpired(session) {
-		err := s.DeleteSession(token)
+	if u.TokenExpired(session) {
+		err := u.DeleteSession(token)
 		if err != nil {
 			return model.Session{}, err
 		}
@@ -66,7 +101,6 @@ func (s *sessionsRepo) TokenValidity(token string) (model.Session, error) {
 	return session, nil
 }
 
-func (s *sessionsRepo) TokenExpired(session model.Session) bool {
-	// Implementasi untuk mengecek apakah token sudah kadaluarsa
+func (u *sessionsRepo) TokenExpired(session model.Session) bool {
 	return session.Expiry.Before(time.Now())
 }

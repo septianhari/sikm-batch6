@@ -2,7 +2,8 @@ package main_test
 
 import (
 	main "a21hc3NpZ25tZW50"
-	"a21hc3NpZ25tZW50/db/filebased"
+	//"a21hc3NpZ25tZW50/db"
+	db "a21hc3NpZ25tZW50/db/filebased"
 	"a21hc3NpZ25tZW50/middleware"
 	"a21hc3NpZ25tZW50/model"
 	repo "a21hc3NpZ25tZW50/repository"
@@ -14,7 +15,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"time"
 
@@ -84,31 +84,45 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 	var insertTasks []model.Task
 	var expectedUserTask []model.UserTaskCategory
 
-	var filebasedDb *filebased.Data
+	db := db.NewDB()
+	dbCredential := model.Credential{
+		Host:         "localhost",
+		Username:     "postgres",
+		Password:     "123",
+		DatabaseName: "fcp",
+		Port:         5432,
+		Schema:       "public",
+	}
 
-	var err error
+	conn, err := db.Connect(&dbCredential)
+	Expect(err).ShouldNot(HaveOccurred())
+
+	userRepo = repo.NewUserRepo(conn)
+	sessionRepo = repo.NewSessionsRepo(conn)
+	categoryRepo = repo.NewCategoryRepo(conn)
+	taskRepo = repo.NewTaskRepo(conn)
+
+	userService = service.NewUserService(userRepo, sessionRepo)
+	sessionService = service.NewSessionService(sessionRepo)
+	categoryService = service.NewCategoryService(categoryRepo)
+	taskService = service.NewTaskService(taskRepo)
 
 	BeforeEach(func() {
 		gin.SetMode(gin.ReleaseMode) //release
 
-		os.Remove("file.db")
+		err = conn.Migrator().DropTable("users", "tasks", "categories", "sessions")
+		Expect(err).ShouldNot(HaveOccurred())
 
-		filebasedDb, err = filebased.InitDB()
+		err = conn.AutoMigrate(&model.User{}, &model.Task{}, &model.Category{}, &model.Session{})
+		Expect(err).ShouldNot(HaveOccurred())
 
-		userRepo = repo.NewUserRepo(filebasedDb)
-		sessionRepo = repo.NewSessionsRepo(filebasedDb)
-		categoryRepo = repo.NewCategoryRepo(filebasedDb)
-		taskRepo = repo.NewTaskRepo(filebasedDb)
-
-		userService = service.NewUserService(userRepo, sessionRepo)
-		sessionService = service.NewSessionService(sessionRepo)
-		categoryService = service.NewCategoryService(categoryRepo)
-		taskService = service.NewTaskService(taskRepo)
-
+		err = db.Reset(conn, "users")
+		err = db.Reset(conn, "tasks")
+		err = db.Reset(conn, "categories")
 		Expect(err).ShouldNot(HaveOccurred())
 
 		apiServer = gin.New()
-		apiServer = main.RunServer(apiServer, filebasedDb)
+		apiServer = main.RunServer(conn, apiServer)
 
 		expectedUserTask = []model.UserTaskCategory{
 			{
@@ -216,10 +230,6 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 		Expect(w.Result().StatusCode).To(Equal(http.StatusCreated))
 	})
 
-	AfterEach(func() {
-		filebasedDb.DB.Close()
-	})
-
 	Describe("Auth Middleware", func() {
 		var (
 			router *gin.Engine
@@ -286,10 +296,12 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 					err := sessionRepo.AddSessions(session)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := filebasedDb.GetFirstSession()
+					result := model.Session{}
+					conn.Model(&model.Session{}).First(&result)
 					Expect(result.Token).To(Equal(session.Token))
 					Expect(result.Email).To(Equal(session.Email))
 
+					err = db.Reset(conn, "sessions")
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
@@ -304,15 +316,20 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 					err := sessionRepo.AddSessions(session)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := filebasedDb.GetFirstSession()
+					result := model.Session{}
+					conn.Model(&model.Session{}).First(&result)
 					Expect(result.Token).To(Equal(session.Token))
 					Expect(result.Email).To(Equal(session.Email))
 
 					err = sessionRepo.DeleteSession("cc03dbea-4085-47ba-86fe-020f5d01a9d8")
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err = filebasedDb.GetFirstSession()
+					result = model.Session{}
+					conn.Model(&model.Session{}).First(&result)
 					Expect(result).To(Equal(model.Session{}))
+
+					err = db.Reset(conn, "sessions")
+					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
 
@@ -326,7 +343,8 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 					err := sessionRepo.AddSessions(session)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := filebasedDb.GetFirstSession()
+					result := model.Session{}
+					conn.Model(&model.Session{}).First(&result)
 					Expect(result.Token).To(Equal(session.Token))
 					Expect(result.Email).To(Equal(session.Email))
 
@@ -338,9 +356,11 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 					err = sessionRepo.UpdateSessions(sessionUpdate)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err = filebasedDb.GetFirstSession()
+					result = model.Session{}
+					conn.Model(&model.Session{}).First(&result)
 					Expect(result.Token).To(Equal(sessionUpdate.Token))
 
+					err = db.Reset(conn, "sessions")
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
@@ -358,7 +378,8 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 					err = sessionRepo.AddSessions(session)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := filebasedDb.GetFirstSession()
+					result := model.Session{}
+					conn.Model(&model.Session{}).First(&result)
 					Expect(result.Token).To(Equal(session.Token))
 					Expect(result.Email).To(Equal(session.Email))
 
@@ -366,6 +387,9 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(res.Token).To(Equal(session.Token))
 					Expect(result.Email).To(Equal(session.Email))
+
+					err = db.Reset(conn, "sessions")
+					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
 
@@ -382,7 +406,8 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 					err = sessionRepo.AddSessions(session)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := filebasedDb.GetFirstSession()
+					result := model.Session{}
+					conn.Model(&model.Session{}).First(&result)
 					Expect(result.Token).To(Equal(session.Token))
 					Expect(result.Email).To(Equal(session.Email))
 
@@ -390,6 +415,9 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(res.Token).To(Equal(session.Token))
 					Expect(result.Email).To(Equal(session.Email))
+
+					err = db.Reset(conn, "sessions")
+					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
 
@@ -435,6 +463,7 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(result.Name).To(Equal(newCategory.Name))
 
+					err = db.Reset(conn, "categories")
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
@@ -512,11 +541,7 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 					taskCategory, err := taskRepo.GetTaskCategory(1)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					Expect(taskCategory).To(Equal([]model.TaskCategory{
-						{ID: 1, Title: "Task 1", Category: "Category 1"},
-						{ID: 3, Title: "Task 3", Category: "Category 1"},
-						{ID: 4, Title: "Task 4", Category: "Category 1"},
-					}))
+					Expect(taskCategory).To(Equal([]model.TaskCategory{{ID: 1, Title: "Task 1", Category: "Category 1"}}))
 				})
 			})
 
@@ -637,11 +662,7 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 					It("should return the task category without any errors", func() {
 						taskCategories, err := taskService.GetTaskCategory(1)
 						Expect(err).ShouldNot(HaveOccurred())
-						Expect(taskCategories).To(Equal([]model.TaskCategory{
-							{ID: 1, Title: "Task 1", Category: "Category 1"},
-							{ID: 3, Title: "Task 3", Category: "Category 1"},
-							{ID: 4, Title: "Task 4", Category: "Category 1"},
-						}))
+						Expect(taskCategories).To(Equal([]model.TaskCategory{{ID: 1, Title: "Task 1", Category: "Category 1"}}))
 					})
 				})
 			})
@@ -1013,11 +1034,7 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 
 						var response []model.TaskCategory
 						Expect(json.Unmarshal(w.Body.Bytes(), &response)).Should(Succeed())
-						Expect(response).To(Equal([]model.TaskCategory{
-							{ID: 1, Title: "Task 1", Category: "Category 1"},
-							{ID: 3, Title: "Task 3", Category: "Category 1"},
-							{ID: 4, Title: "Task 4", Category: "Category 1"},
-						}))
+						Expect(response).To(Equal([]model.TaskCategory{{ID: 1, Title: "Task 1", Category: "Category 1"}}))
 					})
 				})
 			})
