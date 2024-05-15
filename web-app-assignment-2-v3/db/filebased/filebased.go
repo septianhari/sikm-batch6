@@ -17,7 +17,7 @@ type Data struct {
 }
 
 func InitDB() (*Data, error) {
-	db, err := bbolt.Open("file.db", 0777, &bbolt.Options{Timeout: 2 * time.Second})
+	db, err := bbolt.Open("file.db", 0600, &bbolt.Options{Timeout: 2 * time.Second})
 	if err != nil {
 		return nil, fmt.Errorf("error opening database: %v", err)
 	}

@@ -90,7 +90,8 @@ func RunServer(gin *gin.Engine, filebasedDb *filebased.Data) *gin.Engine {
 
 	user := gin.Group("/user")
 	{
-		// TODO: answer here
+		user.POST("/login", apiHandler.UserAPIHandler.Login)
+		user.POST("/register", apiHandler.UserAPIHandler.Register)
 
 		user.Use(middleware.Auth())
 		user.GET("/tasks", apiHandler.UserAPIHandler.GetUserTaskCategory)
@@ -101,7 +102,12 @@ func RunServer(gin *gin.Engine, filebasedDb *filebased.Data) *gin.Engine {
 		task.Use(middleware.Auth())
 		task.POST("/add", apiHandler.TaskAPIHandler.AddTask)
 		task.GET("/get/:id", apiHandler.TaskAPIHandler.GetTaskByID)
-		// TODO: answer here
+
+		task.PUT("/update/:id", apiHandler.TaskAPIHandler.UpdateTask)
+		task.DELETE("/delete/:id", apiHandler.TaskAPIHandler.DeleteTask)
+		task.GET("/list", apiHandler.TaskAPIHandler.GetTaskList)
+		task.GET("/category/:id", apiHandler.TaskAPIHandler.GetTaskListByCategory)
+
 	}
 
 	category := gin.Group("/category")
@@ -109,7 +115,11 @@ func RunServer(gin *gin.Engine, filebasedDb *filebased.Data) *gin.Engine {
 		category.Use(middleware.Auth())
 		category.POST("/add", apiHandler.CategoryAPIHandler.AddCategory)
 		category.GET("/get/:id", apiHandler.CategoryAPIHandler.GetCategoryByID)
-		// TODO: answer here
+
+		category.PUT("/update/:id", apiHandler.CategoryAPIHandler.UpdateCategory)
+		category.DELETE("/delete/:id", apiHandler.CategoryAPIHandler.DeleteCategory)
+		category.GET("/list", apiHandler.CategoryAPIHandler.GetCategoryList)
+
 	}
 
 	return gin

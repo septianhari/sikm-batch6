@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 )
 
 type UserAPI interface {
@@ -36,13 +37,13 @@ func (u *userAPI) Register(c *gin.Context) {
 		return
 	}
 
-	var recordUser = model.User{
+	var rekamUser = model.User{
 		Fullname: user.Fullname,
 		Email:    user.Email,
 		Password: user.Password,
 	}
 
-	recordUser, err := u.userService.Register(&recordUser)
+	rekamUser, err := u.userService.Register(&rekamUser)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.NewErrorResponse(err.Error()))
 		return
@@ -52,8 +53,7 @@ func (u *userAPI) Register(c *gin.Context) {
 }
 
 func (u *userAPI) Login(c *gin.Context) {
-	var user model.User
-
+	var user model.UserLogin
 	if err := c.BindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, model.NewErrorResponse("invalid decode json"))
 		return
@@ -64,27 +64,54 @@ func (u *userAPI) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := u.userService.Login(&user)
+	var recordUser = model.User{
+		Email:    user.Email,
+		Password: user.Password,
+	}
+
+	tokenStringPtr, err := u.userService.Login(&recordUser)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.NewErrorResponse("error internal server"))
 		return
 	}
 
 	expirationTime := time.Now().Add(24 * time.Hour)
-	c.SetCookie("session_token", *token, int(expirationTime.Unix()), "/", "localhost", false, true)
 
-	c.JSON(http.StatusOK, gin.H{
-		"user_id": user.ID,
-		"message": "login success",
+	token, err := jwt.ParseWithClaims(*tokenStringPtr, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return model.JwtKey, nil
 	})
-}
-
-func (u *userAPI) GetUserTaskCategory(c *gin.Context) {
-	categories, err := u.userService.GetUserTaskCategory()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.NewErrorResponse("error internal server"))
 		return
 	}
 
-	c.JSON(http.StatusOK, categories)
+	claims, ok := token.Claims.(*jwt.StandardClaims)
+	if !ok || !token.Valid {
+		c.JSON(http.StatusUnauthorized, model.NewErrorResponse("invalid token"))
+		return
+	}
+	claims.ExpiresAt = expirationTime.Unix()
+
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:    "session_token",
+		Value:   *tokenStringPtr,
+		Expires: expirationTime,
+	})
+
+	c.JSON(http.StatusOK, gin.H{
+		"user_id": recordUser.ID,
+		"message": "login success",
+	})
+}
+
+func (u *userAPI) GetUserTaskCategory(c *gin.Context) {
+	katagoriUser, err := u.userService.GetUserTaskCategory()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "error internal server",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, katagoriUser)
 }

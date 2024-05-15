@@ -42,21 +42,22 @@ func (ct *categoryAPI) AddCategory(c *gin.Context) {
 }
 
 func (ct *categoryAPI) UpdateCategory(c *gin.Context) {
-	categoryID, err := strconv.Atoi(c.Param("id"))
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid category ID"})
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid Category ID"})
 		return
 	}
 
-	var updatedCategory model.Category
-	if err := c.ShouldBindJSON(&updatedCategory); err != nil {
+	var category model.Category
+
+	if err := c.ShouldBindJSON(&category); err != nil {
 		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	err = ct.categoryService.Update(categoryID, updatedCategory)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
+	if err := ct.categoryService.Update(id, category); err != nil {
+		c.JSON(http.StatusNotFound, model.ErrorResponse{Error: "category not found"})
 		return
 	}
 
@@ -64,19 +65,20 @@ func (ct *categoryAPI) UpdateCategory(c *gin.Context) {
 }
 
 func (ct *categoryAPI) DeleteCategory(c *gin.Context) {
-	categoryID, err := strconv.Atoi(c.Param("id"))
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid category ID"})
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid Category ID"})
 		return
 	}
 
-	err = ct.categoryService.Delete(categoryID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
+	if err := ct.categoryService.Delete(id); err != nil {
+		c.JSON(http.StatusNotFound, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, model.SuccessResponse{Message: "category delete success"})
+
 }
 
 func (ct *categoryAPI) GetCategoryByID(c *gin.Context) {
@@ -96,11 +98,11 @@ func (ct *categoryAPI) GetCategoryByID(c *gin.Context) {
 }
 
 func (ct *categoryAPI) GetCategoryList(c *gin.Context) {
-	categories, err := ct.categoryService.GetList()
+	kategori, err := ct.categoryService.GetList()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
+		c.JSON(http.StatusNotFound, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, categories)
+	c.JSON(http.StatusOK, kategori)
 }

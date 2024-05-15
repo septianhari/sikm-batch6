@@ -22,11 +22,12 @@ func NewTaskService(taskRepository repo.TaskRepository) TaskService {
 	return &taskService{taskRepository}
 }
 
-func (s *taskService) Store(task *model.Task) error {
-	err := s.taskRepository.Store(task)
+func (c *taskService) Store(task *model.Task) error {
+	err := c.taskRepository.Store(task)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -35,6 +36,7 @@ func (s *taskService) Update(task *model.Task) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -43,6 +45,7 @@ func (s *taskService) Delete(id int) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -51,6 +54,7 @@ func (s *taskService) GetByID(id int) (*model.Task, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return task, nil
 }
 
@@ -59,6 +63,7 @@ func (s *taskService) GetList() ([]model.Task, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return tasks, nil
 }
 
@@ -67,5 +72,6 @@ func (s *taskService) GetTaskCategory(id int) ([]model.TaskCategory, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return taskCategories, nil
 }

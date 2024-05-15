@@ -1,10 +1,11 @@
 package middleware
 
 import (
+	"a21hc3NpZ25tZW50/model"
 	"net/http"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 )
 
 type Claims struct {
@@ -14,47 +15,39 @@ type Claims struct {
 
 func Auth() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
-		// Ambil cookie dengan nama "session_token"
-		cookie, err := ctx.Cookie("session_token")
+		tknStr, err := ctx.Cookie("session_token")
 		if err != nil {
-			if ctx.GetHeader("Content-Type") == "application/json" {
-				ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-			} else {
-				ctx.Redirect(http.StatusFound, "/login")
+			if ctx.Request.Header.Get("Content-Type") == "application/json" {
+				ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+				return
 			}
-			ctx.Abort()
+			ctx.Redirect(http.StatusSeeOther, "/login")
 			return
 		}
 
-		// Parsing JWT token pada cookie
 		claims := &Claims{}
-		jwtKey := []byte("your_secret_key") // Replace with your secret key
 
-		token, err := jwt.ParseWithClaims(cookie, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
+		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+			return model.JwtKey, nil
 		})
 
 		if err != nil {
 			if err == jwt.ErrSignatureInvalid {
-				ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-				ctx.Abort()
+				ctx.AbortWithStatus(http.StatusUnauthorized)
 				return
 			}
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request"})
-			ctx.Abort()
+
+			ctx.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 
-		if !token.Valid {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-			ctx.Abort()
+		if !tkn.Valid {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
-		// Simpan nilai UserID dari claims ke dalam context dengan key "id"
 		ctx.Set("id", claims.UserID)
 
-		// Lanjutkan ke handler berikutnya
 		ctx.Next()
 	})
 }

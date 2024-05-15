@@ -25,25 +25,52 @@ func NewTaskRepo(filebasedDb *filebased.Data) *taskRepository {
 }
 
 func (t *taskRepository) Store(task *model.Task) error {
-	return t.filebased.StoreTask(*task)
+	t.filebased.StoreTask(*task)
+
+	return nil
 }
 
 func (t *taskRepository) Update(task *model.Task) error {
-	return t.filebased.UpdateTask(task.ID, *task)
+	err := t.filebased.StoreTask(*task)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (t *taskRepository) Delete(id int) error {
-	return t.filebased.DeleteTask(id)
+	err := t.filebased.DeleteTask(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (t *taskRepository) GetByID(id int) (*model.Task, error) {
-	return t.filebased.GetTaskByID(id)
+	tasks, err := t.filebased.GetTaskByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
 }
 
 func (t *taskRepository) GetList() ([]model.Task, error) {
-	return t.filebased.GetTasks()
+	tasks, err := t.filebased.GetTasks()
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
 }
 
 func (t *taskRepository) GetTaskCategory(id int) ([]model.TaskCategory, error) {
-	return t.filebased.GetTaskListByCategory(id)
+	taskCategories, err := t.filebased.GetTaskListByCategory(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return taskCategories, nil
 }

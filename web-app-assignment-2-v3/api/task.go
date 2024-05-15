@@ -43,48 +43,47 @@ func (t *taskAPI) AddTask(c *gin.Context) {
 }
 
 func (t *taskAPI) UpdateTask(c *gin.Context) {
-	taskID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid task ID"})
-		return
-	}
-
-	var updatedTask model.Task
-	if err := c.ShouldBindJSON(&updatedTask); err != nil {
+	var newTask model.Task
+	if err := c.ShouldBindJSON(&newTask); err != nil {
 		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	updatedTask.ID = taskID
-	err = t.taskService.Update(&updatedTask)
+	err := t.taskService.Update(&newTask)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, model.SuccessResponse{Message: "update task success"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "update task success",
+	})
 }
 
 func (t *taskAPI) DeleteTask(c *gin.Context) {
-	taskID, err := strconv.Atoi(c.Param("id"))
+	idStr, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid task ID"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid task ID",
+		})
 		return
 	}
 
-	err = t.taskService.Delete(taskID)
+	err = t.taskService.Delete(idStr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, model.SuccessResponse{Message: "delete task success"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "delete task success",
+	})
 }
 
 func (t *taskAPI) GetTaskByID(c *gin.Context) {
 	taskID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid task ID"})
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "Invalid task ID"})
 		return
 	}
 
@@ -105,20 +104,21 @@ func (t *taskAPI) GetTaskList(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, tasks)
+
 }
 
 func (t *taskAPI) GetTaskListByCategory(c *gin.Context) {
-	categoryID, err := strconv.Atoi(c.Param("category_id"))
+	taskID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid category ID"})
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "Invalid task ID"})
 		return
 	}
 
-	tasks, err := t.taskService.GetTaskCategory(categoryID)
+	taskCategories, err := t.taskService.GetTaskCategory(taskID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, tasks)
+	c.JSON(http.StatusOK, taskCategories)
 }

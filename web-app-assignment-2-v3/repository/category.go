@@ -6,7 +6,7 @@ import (
 )
 
 type CategoryRepository interface {
-	Store(category *model.Category) error
+	Store(Category *model.Category) error
 	Update(id int, category model.Category) error
 	Delete(id int) error
 	GetByID(id int) (*model.Category, error)
@@ -21,22 +21,39 @@ func NewCategoryRepo(filebasedDb *filebased.Data) *categoryRepository {
 	return &categoryRepository{filebasedDb}
 }
 
-func (c *categoryRepository) Store(category *model.Category) error {
-	return c.filebasedDb.StoreCategory(*category)
+func (c *categoryRepository) Store(Category *model.Category) error {
+	c.filebasedDb.StoreCategory(*Category)
+	return nil
 }
 
 func (c *categoryRepository) Update(id int, category model.Category) error {
-	return c.filebasedDb.UpdateCategory(id, category)
+	err := c.filebasedDb.UpdateCategory(id, category)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *categoryRepository) Delete(id int) error {
-	return c.filebasedDb.DeleteCategory(id)
+	err := c.filebasedDb.DeleteCategory(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *categoryRepository) GetByID(id int) (*model.Category, error) {
-	return c.filebasedDb.GetCategoryByID(id)
+	category, err := c.filebasedDb.GetCategoryByID(id)
+
+	return category, err
 }
 
 func (c *categoryRepository) GetList() ([]model.Category, error) {
-	return c.filebasedDb.GetCategories()
+	categories, err := c.filebasedDb.GetCategories()
+	if err != nil {
+		return nil, err
+	}
+
+	return categories, nil
 }
