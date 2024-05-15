@@ -1,10 +1,9 @@
 package repository
 
 import (
+	"a21hc3NpZ25tZW50/db/filebased"
 	"a21hc3NpZ25tZW50/model"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type SessionRepository interface {
@@ -17,71 +16,46 @@ type SessionRepository interface {
 }
 
 type sessionsRepo struct {
-	db *gorm.DB
+	filebasedDb *filebased.Data
 }
 
-func NewSessionsRepo(db *gorm.DB) *sessionsRepo {
-	return &sessionsRepo{db}
+func NewSessionsRepo(filebasedDb *filebased.Data) *sessionsRepo {
+	return &sessionsRepo{filebasedDb}
 }
 
 func (u *sessionsRepo) AddSessions(session model.Session) error {
-	res := u.db.Create(&session)
-	if res.Error != nil {
-		return res.Error
-	}
-	return nil // TODO: replace this
+	// return nil // TODO: replace this
+	return u.filebasedDb.AddSession(session)
 }
 
 func (u *sessionsRepo) DeleteSession(token string) error {
-	var session model.Session
-	res := u.db.Where("token = ?", token).First(&session)
-	if res.Error != nil {
-		return res.Error
-	}
-
-	res = u.db.Delete(&session)
-	if res.Error != nil {
-		return res.Error
-	}
-
-	return nil // TODO: replace this
+	// return nil // TODO: replace this
+	return u.filebasedDb.DeleteSession(token)
 }
 
 func (u *sessionsRepo) UpdateSessions(session model.Session) error {
-	var update model.Session
-	res := u.db.Where("email = ?", session.Email).First(&update)
-	if res.Error != nil {
-		return res.Error
-	}
-
-	update.Token = session.Token
-	update.Email = session.Email
-	update.Expiry = session.Expiry
-	res = u.db.Save(&update)
-	if res.Error != nil {
-		return res.Error
-	}
-	return nil // TODO: replace this
+	// return nil // TODO: replace this
+	return u.filebasedDb.UpdateSession(session)
 }
 
 func (u *sessionsRepo) SessionAvailEmail(email string) (model.Session, error) {
-	var session model.Session
-	res := u.db.Where("email = ?", email).First(&session)
-	if res.Error != nil {
-		return model.Session{}, res.Error
+	// return model.Session{}, nil // TODO: replace this
+	session, err := u.filebasedDb.SessionAvailEmail(email)
+	if err != nil {
+		return model.Session{}, err
 	}
 
-	return session, nil // TODO: replace this
+	return session, nil
 }
 
 func (u *sessionsRepo) SessionAvailToken(token string) (model.Session, error) {
-	var session model.Session
-	res := u.db.Where("token = ?", token).First(&session)
-	if res.Error != nil {
-		return session, res.Error
+	// return model.Session{}, nil // TODO: replace this
+	session, err := u.filebasedDb.SessionAvailToken(token)
+	if err != nil {
+		return model.Session{}, err
 	}
 
-	return session, nil // TODO: replace this
+	return session, nil
 }
 
 func (u *sessionsRepo) TokenValidity(token string) (model.Session, error) {

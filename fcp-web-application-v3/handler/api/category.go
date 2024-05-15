@@ -42,26 +42,24 @@ func (ct *categoryAPI) AddCategory(c *gin.Context) {
 }
 
 func (ct *categoryAPI) UpdateCategory(c *gin.Context) {
-	if len(c.Request.Cookies()) < 1 {
-		c.String(http.StatusUnauthorized, "Unauthorized")
-		c.Abort()
+	// TODO: answer here
+	categoryID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid Category ID"})
 		return
 	}
-	var category model.Category
-	if err := c.ShouldBindJSON(&category); err != nil {
+
+	var updatedCategory model.Category
+	if err := c.ShouldBindJSON(&updatedCategory); err != nil {
 		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(400, model.ErrorResponse{Error: "invalid Category ID"})
-		return
-	}
+	updatedCategory.ID = categoryID
 
-	err = ct.categoryService.Update(id, category)
+	err = ct.categoryService.Update(categoryID, updatedCategory)
 	if err != nil {
-		c.JSON(500, model.SuccessResponse{Message: err.Error()})
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
@@ -69,19 +67,16 @@ func (ct *categoryAPI) UpdateCategory(c *gin.Context) {
 }
 
 func (ct *categoryAPI) DeleteCategory(c *gin.Context) {
-	if len(c.Request.Cookies()) < 1 {
-		c.String(http.StatusUnauthorized, "Unauthorized")
-		c.Abort()
+	// TODO: answer here
+	categoryID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid Category ID"})
 		return
 	}
-	id, err := strconv.Atoi(c.Param("id"))
+
+	err = ct.categoryService.Delete(categoryID)
 	if err != nil {
-		c.JSON(400, model.ErrorResponse{Error: "Invalid Category ID"})
-		return
-	}
-	err = ct.categoryService.Delete(id)
-	if err != nil {
-		c.JSON(500, model.ErrorResponse{Error: err.Error()})
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
@@ -105,14 +100,11 @@ func (ct *categoryAPI) GetCategoryByID(c *gin.Context) {
 }
 
 func (ct *categoryAPI) GetCategoryList(c *gin.Context) {
-	if len(c.Request.Cookies()) < 1 {
-		c.String(http.StatusUnauthorized, "Unauthorized")
-		c.Abort()
-		return
-	}
+	// TODO: answer here
 	categories, err := ct.categoryService.GetList()
 	if err != nil {
-		c.JSON(500, model.ErrorResponse{Error: err.Error()})
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, categories)

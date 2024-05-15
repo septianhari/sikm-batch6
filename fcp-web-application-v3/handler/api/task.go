@@ -3,6 +3,7 @@ package api
 import (
 	"a21hc3NpZ25tZW50/model"
 	"a21hc3NpZ25tZW50/service"
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -43,51 +44,45 @@ func (t *taskAPI) AddTask(c *gin.Context) {
 }
 
 func (t *taskAPI) UpdateTask(c *gin.Context) {
-	if len(c.Request.Cookies()) < 1 {
-		c.String(http.StatusUnauthorized, "Unauthorized")
-		c.Abort()
+	// TODO: answer here
+	taskID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid Task ID"})
 		return
 	}
-	// TODO: answer here
-	var task model.Task
-	if err := c.ShouldBindJSON(&task); err != nil {
+
+	var updatedTask model.Task
+	if err := c.ShouldBindJSON(&updatedTask); err != nil {
 		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	id, err := strconv.Atoi(c.Param("id"))
+	updatedTask.ID = taskID
+
+	err = t.taskService.Update(taskID, &updatedTask)
 	if err != nil {
-		c.JSON(400, model.ErrorResponse{Error: "Invalid task ID"})
-		return
-	}
-	task.ID = id
-	err = t.taskService.Update(id, &task)
-	if err != nil {
-		c.JSON(500, model.ErrorResponse{Error: err.Error()})
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, model.SuccessResponse{Message: "update task success"})
+	c.JSON(http.StatusOK, model.SuccessResponse{Message: "task update success"})
 }
 
 func (t *taskAPI) DeleteTask(c *gin.Context) {
-	if len(c.Request.Cookies()) < 1 {
-		c.String(http.StatusUnauthorized, "Unauthorized")
-		c.Abort()
-		return
-	}
-	id, err := strconv.Atoi(c.Param("id"))
+	// TODO: answer here
+	taskID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "Invalid task ID"})
-		return
-	}
-	err = t.taskService.Delete(id)
-	if err != nil {
-		c.JSON(500, model.ErrorResponse{Error: err.Error()})
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid Task ID"})
 		return
 	}
 
-	c.JSON(http.StatusOK, model.SuccessResponse{Message: "delete task success"})
+	err = t.taskService.Delete(taskID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, model.SuccessResponse{Message: "task delete success"})
 }
 
 func (t *taskAPI) GetTaskByID(c *gin.Context) {
@@ -107,15 +102,10 @@ func (t *taskAPI) GetTaskByID(c *gin.Context) {
 }
 
 func (t *taskAPI) GetTaskList(c *gin.Context) {
-	if len(c.Request.Cookies()) < 1 {
-		c.String(http.StatusUnauthorized, "Unauthorized")
-		c.Abort()
-		return
-	}
 	// TODO: answer here
 	tasks, err := t.taskService.GetList()
 	if err != nil {
-		c.JSON(500, model.ErrorResponse{Error: err.Error()})
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
@@ -124,22 +114,24 @@ func (t *taskAPI) GetTaskList(c *gin.Context) {
 
 func (t *taskAPI) GetTaskListByCategory(c *gin.Context) {
 	// TODO: answer here
-	if len(c.Request.Cookies()) < 1 {
-		c.String(http.StatusUnauthorized, "Unauthorized")
-		c.Abort()
-		return
-	}
-	id, err := strconv.Atoi(c.Param("id"))
+	categoryID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(400, model.ErrorResponse{Error: "Invalid task ID"})
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "Invalid category ID"})
 		return
 	}
 
-	taskCategory, err := t.taskService.GetTaskCategory(id)
+	taskCategories, err := t.taskService.GetTaskCategory(categoryID)
 	if err != nil {
-		c.JSON(500, model.ErrorResponse{Error: err.Error()})
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, taskCategory)
+	jsonData, err := json.Marshal(taskCategories)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "Error marshalling JSON"})
+		return
+	}
+
+	// Mengirimkan JSON sebagai respon
+	c.Data(http.StatusOK, "application/json", jsonData)
 }

@@ -2,12 +2,10 @@ package main
 
 import (
 	"a21hc3NpZ25tZW50/client"
-	db "a21hc3NpZ25tZW50/db/filebased"
-	//"a21hc3NpZ25tZW50/db"
+	"a21hc3NpZ25tZW50/db/filebased"
 	"a21hc3NpZ25tZW50/handler/api"
 	"a21hc3NpZ25tZW50/handler/web"
 	"a21hc3NpZ25tZW50/middleware"
-	"a21hc3NpZ25tZW50/model"
 	repo "a21hc3NpZ25tZW50/repository"
 	"a21hc3NpZ25tZW50/service"
 	"embed"
@@ -20,7 +18,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	"gorm.io/gorm"
 )
 
 type APIHandler struct {
@@ -51,7 +48,6 @@ func main() {
 		defer wg.Done()
 
 		router := gin.New()
-		db := db.NewDB()
 		router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
 			return fmt.Sprintf("[%s] \"%s %s %s\"\n",
 				param.TimeStamp.Format(time.RFC822),
@@ -62,24 +58,14 @@ func main() {
 		}))
 		router.Use(gin.Recovery())
 
-		dbCredential := model.Credential{
-			Host:         "localhost",
-			Username:     "postgres",
-			Password:     "3124", // 123
-			DatabaseName: "fcp",
-			Port:         5432,
-			Schema:       "public",
-		}
+		filebasedDb, err := filebased.InitDB()
 
-		conn, err := db.Connect(&dbCredential)
 		if err != nil {
 			panic(err)
 		}
 
-		conn.AutoMigrate(&model.User{}, &model.Session{}, &model.Category{}, &model.Task{})
-
-		router = RunServer(conn, router)
-		router = RunClient(conn, router, Resources)
+		router = RunServer(router, filebasedDb)
+		router = RunClient(router, Resources, filebasedDb)
 
 		fmt.Println("Server is running on port 8080")
 		err = router.Run(":8080")
@@ -92,11 +78,11 @@ func main() {
 	wg.Wait()
 }
 
-func RunServer(db *gorm.DB, gin *gin.Engine) *gin.Engine {
-	userRepo := repo.NewUserRepo(db)
-	sessionRepo := repo.NewSessionsRepo(db)
-	categoryRepo := repo.NewCategoryRepo(db)
-	taskRepo := repo.NewTaskRepo(db)
+func RunServer(gin *gin.Engine, filebasedDb *filebased.Data) *gin.Engine {
+	userRepo := repo.NewUserRepo(filebasedDb)
+	sessionRepo := repo.NewSessionsRepo(filebasedDb)
+	categoryRepo := repo.NewCategoryRepo(filebasedDb)
+	taskRepo := repo.NewTaskRepo(filebasedDb)
 
 	userService := service.NewUserService(userRepo, sessionRepo)
 	categoryService := service.NewCategoryService(categoryRepo)
@@ -148,8 +134,8 @@ func RunServer(db *gorm.DB, gin *gin.Engine) *gin.Engine {
 	return gin
 }
 
-func RunClient(db *gorm.DB, gin *gin.Engine, embed embed.FS) *gin.Engine {
-	sessionRepo := repo.NewSessionsRepo(db)
+func RunClient(gin *gin.Engine, embed embed.FS, filebasedDb *filebased.Data) *gin.Engine {
+	sessionRepo := repo.NewSessionsRepo(filebasedDb)
 	sessionService := service.NewSessionService(sessionRepo)
 
 	userClient := client.NewUserClient()
@@ -178,13 +164,13 @@ func RunClient(db *gorm.DB, gin *gin.Engine, embed embed.FS) *gin.Engine {
 		user.GET("/register", client.AuthWeb.Register)
 		user.POST("/register/process", client.AuthWeb.RegisterProcess)
 
-		user.Use(middleware.Auth())
+		// user.Use(middleware.Auth())
 		user.GET("/logout", client.AuthWeb.Logout)
 	}
 
 	main := gin.Group("/client")
 	{
-		main.Use(middleware.Auth())
+		// main.Use(middleware.Auth())
 		main.GET("/dashboard", client.DashboardWeb.Dashboard)
 		main.GET("/task", client.TaskWeb.TaskPage)
 		user.POST("/task/add/process", client.TaskWeb.TaskAddProcess)

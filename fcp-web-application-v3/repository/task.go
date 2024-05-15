@@ -1,14 +1,13 @@
 package repository
 
 import (
+	"a21hc3NpZ25tZW50/db/filebased"
 	"a21hc3NpZ25tZW50/model"
-
-	"gorm.io/gorm"
 )
 
 type TaskRepository interface {
 	Store(task *model.Task) error
-	Update(id int, task *model.Task) error
+	Update(taskID int, task *model.Task) error
 	Delete(id int) error
 	GetByID(id int) (*model.Task, error)
 	GetList() ([]model.Task, error)
@@ -16,32 +15,29 @@ type TaskRepository interface {
 }
 
 type taskRepository struct {
-	db *gorm.DB
+	filebased *filebased.Data
 }
 
-func NewTaskRepo(db *gorm.DB) *taskRepository {
-	return &taskRepository{db}
+func NewTaskRepo(filebasedDb *filebased.Data) *taskRepository {
+	return &taskRepository{
+		filebased: filebasedDb,
+	}
 }
 
 func (t *taskRepository) Store(task *model.Task) error {
-	err := t.db.Create(task).Error
-	if err != nil {
-		return err
-	}
+	t.filebased.StoreTask(*task)
 
 	return nil
 }
 
-func (t *taskRepository) Update(id int, task *model.Task) error {
-	err := t.db.Model(&model.Task{}).Where("id = ?", task.ID).Updates(model.Task{Title: task.Title, Deadline: task.Deadline, Priority: task.Priority, CategoryID: task.CategoryID, Status: task.Status}).Error
-	if err != nil {
-		return err
-	}
-	return nil
+func (t *taskRepository) Update(taskID int, task *model.Task) error {
+	// return nil // TODO: replace this
+	return t.filebased.UpdateTask(task.ID, *task)
 }
 
 func (t *taskRepository) Delete(id int) error {
-	err := t.db.Where("id = ?", id).Delete(&model.Task{}).Error
+	// return nil // TODO: replace this
+	err := t.filebased.DeleteTask(id)
 	if err != nil {
 		return err
 	}
@@ -49,32 +45,29 @@ func (t *taskRepository) Delete(id int) error {
 }
 
 func (t *taskRepository) GetByID(id int) (*model.Task, error) {
-	var task model.Task
-	err := t.db.First(&task, id).Error
+	// return nil, nil // TODO: replace this
+	task, err := t.filebased.GetTaskByID(id)
 	if err != nil {
 		return nil, err
 	}
-
-	return &task, nil
+	return task, nil
 }
 
 func (t *taskRepository) GetList() ([]model.Task, error) {
-	tasks := []model.Task{}
-
-	err := t.db.Find(&tasks).Error
+	// return nil, nil // TODO: replace this
+	// return t.filebased.GetTasks()
+	task, err := t.filebased.GetTasks()
 	if err != nil {
-		return []model.Task{}, err
+		return nil, err
 	}
-
-	return tasks, nil
+	return task, nil
 }
 
 func (t *taskRepository) GetTaskCategory(id int) ([]model.TaskCategory, error) {
-	taskCategory := []model.TaskCategory{}
-	err := t.db.Table("tasks").Select("tasks.id as id, tasks.title as title, categories.name as category").Joins("left join categories on tasks.category_id = categories.id").Where("tasks.id = ?", id).First(&taskCategory).Error
+	// return nil, nil // TODO: replace this
+	task, err := t.filebased.GetTaskListByCategory(id)
 	if err != nil {
-		return []model.TaskCategory{}, err
+		return nil, err
 	}
-
-	return taskCategory, nil
+	return task, nil
 }

@@ -26,7 +26,7 @@ func NewUserService(userRepository repo.UserRepository, sessionsRepo repo.Sessio
 
 func (s *userService) Register(user *model.User) (model.User, error) {
 	dbUser, err := s.userRepo.GetUserByEmail(user.Email)
-	if err != nil && err.Error() != "record not found" {
+	if err != nil {
 		return *user, err
 	}
 
@@ -81,25 +81,19 @@ func (s *userService) Login(user *model.User) (token *string, err error) {
 	_, err = s.sessionsRepo.SessionAvailEmail(session.Email)
 	if err != nil {
 		err = s.sessionsRepo.AddSessions(session)
-		if err != nil {
-			return nil, err
-		}
 	} else {
 		err = s.sessionsRepo.UpdateSessions(session)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return &tokenString, nil
 }
 
 func (s *userService) GetUserTaskCategory() ([]model.UserTaskCategory, error) {
-	UserTaskCategories, err := s.userRepo.GetUserTaskCategory()
-
+	// return nil, nil // TODO: replace this
+	// return s.userRepo.GetUserTaskCategory()
+	user, err := s.userRepo.GetUserTaskCategory()
 	if err != nil {
-		return []model.UserTaskCategory{}, err
+		return nil, err
 	}
-
-	return UserTaskCategories, nil // TODO: replace this
+	return user, nil
 }
