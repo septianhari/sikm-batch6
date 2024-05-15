@@ -18,34 +18,37 @@ type taskRepository struct {
 	filebased *filebased.Data
 }
 
-func NewTaskRepo(filebasedDb *filebased.Data) TaskRepository {
+func NewTaskRepo(filebasedDb *filebased.Data) *taskRepository {
 	return &taskRepository{
 		filebased: filebasedDb,
 	}
 }
 
 func (t *taskRepository) Store(task *model.Task) error {
-	err := t.filebased.StoreTask(*task)
-	if err != nil {
-		return err
-	}
+	t.filebased.StoreTask(*task)
+
 	return nil
 }
 
 func (t *taskRepository) Update(task *model.Task) error {
+
 	err := t.filebased.UpdateTask(task.ID, *task)
+
 	if err != nil {
 		return err
 	}
-	return nil
+
+	return nil // TODO: replace this
 }
 
 func (t *taskRepository) Delete(id int) error {
+
 	err := t.filebased.DeleteTask(id)
+
 	if err != nil {
 		return err
 	}
-	return nil
+	return nil // TODO: replace this
 }
 
 func (t *taskRepository) GetByID(id int) (*model.Task, error) {
@@ -53,21 +56,24 @@ func (t *taskRepository) GetByID(id int) (*model.Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	return task, nil
+
+	return task, nil // TODO: replace this
 }
 
 func (t *taskRepository) GetList() ([]model.Task, error) {
-	tasks, err := t.filebased.GetTasks()
+	task, err := t.filebased.GetTasks()
 	if err != nil {
 		return nil, err
 	}
-	return tasks, nil
+	return task, nil
 }
 
 func (t *taskRepository) GetTaskCategory(id int) ([]model.TaskCategory, error) {
-	taskCategories, err := t.filebased.GetTaskListByCategory(id)
+	Category, err := t.filebased.GetTaskListByCategory(id)
+
 	if err != nil {
 		return nil, err
 	}
-	return taskCategories, nil
+
+	return Category, nil
 }

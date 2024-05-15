@@ -17,47 +17,39 @@ type categoryRepository struct {
 	filebasedDb *filebased.Data
 }
 
-func NewCategoryRepo(filebasedDb *filebased.Data) CategoryRepository {
+func NewCategoryRepo(filebasedDb *filebased.Data) *categoryRepository {
 	return &categoryRepository{filebasedDb}
 }
 
 func (c *categoryRepository) Store(Category *model.Category) error {
-	err := c.filebasedDb.StoreCategory(*Category)
-	if err != nil {
-		return err
-	}
+	c.filebasedDb.StoreCategory(*Category)
 	return nil
 }
 
 func (c *categoryRepository) Update(id int, category model.Category) error {
-	category.ID = id
 	err := c.filebasedDb.UpdateCategory(id, category)
+
 	if err != nil {
 		return err
 	}
-	return nil
+	return nil // TODO: replace this
 }
 
 func (c *categoryRepository) Delete(id int) error {
 	err := c.filebasedDb.DeleteCategory(id)
+
 	if err != nil {
 		return err
 	}
-	return nil
+	return nil // TODO: replace this
 }
 
 func (c *categoryRepository) GetByID(id int) (*model.Category, error) {
 	category, err := c.filebasedDb.GetCategoryByID(id)
-	if err != nil {
-		return nil, err
-	}
-	return category, nil
+	return category, err
 }
 
 func (c *categoryRepository) GetList() ([]model.Category, error) {
 	categories, err := c.filebasedDb.GetCategories()
-	if err != nil {
-		return nil, err
-	}
-	return categories, nil
+	return categories, err
 }

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	_ "embed"
+
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
@@ -46,7 +48,7 @@ func main() {
 	}
 }
 
-func RunServer(router *gin.Engine, filebasedDb *filebased.Data) *gin.Engine {
+func RunServer(gin *gin.Engine, filebasedDb *filebased.Data) *gin.Engine {
 	categoryRepo := repo.NewCategoryRepo(filebasedDb)
 	taskRepo := repo.NewTaskRepo(filebasedDb)
 
@@ -61,24 +63,27 @@ func RunServer(router *gin.Engine, filebasedDb *filebased.Data) *gin.Engine {
 		TaskAPIHandler:     taskAPIHandler,
 	}
 
-	task := router.Group("/task")
+	task := gin.Group("/task")
 	{
 		task.POST("/add", apiHandler.TaskAPIHandler.AddTask)
-		task.GET("/get/:id", apiHandler.TaskAPIHandler.GetTaskByID)
-		task.PUT("/update/:id", apiHandler.TaskAPIHandler.UpdateTask)
 		task.DELETE("/delete/:id", apiHandler.TaskAPIHandler.DeleteTask)
-		task.GET("/get", apiHandler.TaskAPIHandler.GetTaskList)
+		task.PUT("/update/:id", apiHandler.TaskAPIHandler.UpdateTask)
 		task.GET("/category/:id", apiHandler.TaskAPIHandler.GetTaskListByCategory)
+		task.GET("/get/:id", apiHandler.TaskAPIHandler.GetTaskByID)
+		task.GET("/list", apiHandler.TaskAPIHandler.GetTaskList)
+
+		// TODO: answer here
 	}
 
-	category := router.Group("/category")
+	category := gin.Group("/category")
 	{
 		category.POST("/add", apiHandler.CategoryAPIHandler.AddCategory)
-		category.GET("/get/:id", apiHandler.CategoryAPIHandler.GetCategoryByID)
-		category.PUT("/update/:id", apiHandler.CategoryAPIHandler.UpdateCategory)
 		category.DELETE("/delete/:id", apiHandler.CategoryAPIHandler.DeleteCategory)
-		category.GET("/get", apiHandler.CategoryAPIHandler.GetCategoryList)
+		category.PUT("/update/:id", apiHandler.CategoryAPIHandler.UpdateCategory)
+		category.GET("/get/:id", apiHandler.CategoryAPIHandler.GetCategoryByID)
+		category.GET("/list", apiHandler.CategoryAPIHandler.GetCategoryList)
+		// TODO: answer here
 	}
 
-	return router
+	return gin
 }
