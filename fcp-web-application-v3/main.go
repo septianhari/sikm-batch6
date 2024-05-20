@@ -164,13 +164,13 @@ func RunClient(gin *gin.Engine, embed embed.FS, filebasedDb *filebased.Data) *gi
 		user.GET("/register", client.AuthWeb.Register)
 		user.POST("/register/process", client.AuthWeb.RegisterProcess)
 
-		// user.Use(middleware.Auth())
+		user.Use(middleware.Auth())
 		user.GET("/logout", client.AuthWeb.Logout)
 	}
 
 	main := gin.Group("/client")
 	{
-		// main.Use(middleware.Auth())
+		main.Use(middleware.Auth())
 		main.GET("/dashboard", client.DashboardWeb.Dashboard)
 		main.GET("/task", client.TaskWeb.TaskPage)
 		user.POST("/task/add/process", client.TaskWeb.TaskAddProcess)

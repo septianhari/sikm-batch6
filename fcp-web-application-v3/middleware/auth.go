@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"errors"
+	"a21hc3NpZ25tZW50/model"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,22 +10,34 @@ import (
 
 func Auth() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
-		cookie, err := ctx.Cookie("session_token")
-
+		tknStr, err := ctx.Cookie("session_token")
 		if err != nil {
-			if ctx.GetHeader("Content-type") == "unauthorized" {
-				ctx.AbortWithStatus(http.StatusUnauthorized)
-			} else {
-				ctx.Redirect(http.StatusSeeOther, "/login")
+			if ctx.Request.Header.Get("Content-Type") == "application/json" {
+				ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+				return
 			}
+			ctx.Redirect(http.StatusSeeOther, "/login")
 			return
 		}
 
-		// Parsing token JWT
-		//tokenString := strings.TrimPrefix(cookie, "Bearer ")
-		claims, err := ParseJWT(cookie)
+		claims := &model.Claims{}
+
+		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+			return model.JwtKey, nil
+		})
+
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			if err == jwt.ErrSignatureInvalid {
+				ctx.AbortWithStatus(http.StatusUnauthorized)
+				return
+			}
+
+			ctx.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		if !tkn.Valid {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
@@ -33,24 +45,4 @@ func Auth() gin.HandlerFunc {
 
 		ctx.Next()
 	})
-}
-
-func ParseJWT(tokenString string) (*Claims, error) {
-	claims := &Claims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secret-key"), nil // Ganti "model.JwtKey" dengan secret key JWT Anda
-	})
-	if err != nil {
-		return nil, err
-	}
-	if !token.Valid {
-		return nil, errors.New("invalid token")
-	}
-	return claims, nil
-}
-
-// Claims adalah struct untuk menyimpan claim token JWT
-type Claims struct {
-	Email string `json:"email"`
-	jwt.StandardClaims
 }

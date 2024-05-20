@@ -18,6 +18,9 @@ func NewSessionService(sessionRepo repo.SessionRepository) *sessionService {
 }
 
 func (c *sessionService) GetSessionByEmail(email string) (model.Session, error) {
-	// return model.Session{}, nil // TODO: replace this
-	return c.sessionRepo.SessionAvailEmail(email)
+	session, err := c.sessionRepo.SessionAvailEmail(email)
+	if err != nil {
+		return model.Session{}, err
+	}
+	return session, nil // TODO: replace this
 }

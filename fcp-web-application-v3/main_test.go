@@ -216,6 +216,10 @@ var _ = Describe("Task Tracker Plus", Ordered, func() {
 		Expect(w.Result().StatusCode).To(Equal(http.StatusCreated))
 	})
 
+	AfterEach(func() {
+		filebasedDb.DB.Close()
+	})
+
 	Describe("Auth Middleware", func() {
 		var (
 			router *gin.Engine

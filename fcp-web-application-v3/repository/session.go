@@ -24,38 +24,43 @@ func NewSessionsRepo(filebasedDb *filebased.Data) *sessionsRepo {
 }
 
 func (u *sessionsRepo) AddSessions(session model.Session) error {
-	// return nil // TODO: replace this
-	return u.filebasedDb.AddSession(session)
+	err := u.filebasedDb.AddSession(session)
+	if err != nil {
+		return err
+	}
+	return nil // TODO: replace this
+
 }
 
 func (u *sessionsRepo) DeleteSession(token string) error {
-	// return nil // TODO: replace this
-	return u.filebasedDb.DeleteSession(token)
+	err := u.filebasedDb.DeleteSession(token)
+	if err != nil {
+		return err
+	}
+	return nil // TODO: replace this
 }
 
 func (u *sessionsRepo) UpdateSessions(session model.Session) error {
-	// return nil // TODO: replace this
-	return u.filebasedDb.UpdateSession(session)
+	err := u.filebasedDb.UpdateSession(session)
+	if err != nil {
+		return err
+	}
+	return nil // TODO: replace this
 }
 
 func (u *sessionsRepo) SessionAvailEmail(email string) (model.Session, error) {
-	// return model.Session{}, nil // TODO: replace this
 	session, err := u.filebasedDb.SessionAvailEmail(email)
 	if err != nil {
 		return model.Session{}, err
 	}
-
-	return session, nil
+	return session, nil // TODO: replace this
 }
-
 func (u *sessionsRepo) SessionAvailToken(token string) (model.Session, error) {
-	// return model.Session{}, nil // TODO: replace this
 	session, err := u.filebasedDb.SessionAvailToken(token)
 	if err != nil {
 		return model.Session{}, err
 	}
-
-	return session, nil
+	return session, nil // TODO: replace this
 }
 
 func (u *sessionsRepo) TokenValidity(token string) (model.Session, error) {

@@ -3,7 +3,6 @@ package api
 import (
 	"a21hc3NpZ25tZW50/model"
 	"a21hc3NpZ25tZW50/service"
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -44,45 +43,41 @@ func (t *taskAPI) AddTask(c *gin.Context) {
 }
 
 func (t *taskAPI) UpdateTask(c *gin.Context) {
-	// TODO: answer here
-	taskID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid Task ID"})
-		return
-	}
-
-	var updatedTask model.Task
-	if err := c.ShouldBindJSON(&updatedTask); err != nil {
+	var newTask model.Task
+	if err := c.ShouldBindJSON(&newTask); err != nil {
 		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	updatedTask.ID = taskID
-
-	err = t.taskService.Update(taskID, &updatedTask)
+	err := t.taskService.Update(newTask.ID, &newTask)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, model.SuccessResponse{Message: "task update success"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "update task success",
+	})
 }
 
 func (t *taskAPI) DeleteTask(c *gin.Context) {
-	// TODO: answer here
-	taskID, err := strconv.Atoi(c.Param("id"))
+	idStr, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid Task ID"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid task ID",
+		})
 		return
 	}
 
-	err = t.taskService.Delete(taskID)
+	err = t.taskService.Delete(idStr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, model.SuccessResponse{Message: "task delete success"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "delete task success",
+	})
 }
 
 func (t *taskAPI) GetTaskByID(c *gin.Context) {
@@ -102,7 +97,6 @@ func (t *taskAPI) GetTaskByID(c *gin.Context) {
 }
 
 func (t *taskAPI) GetTaskList(c *gin.Context) {
-	// TODO: answer here
 	tasks, err := t.taskService.GetList()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
@@ -110,28 +104,21 @@ func (t *taskAPI) GetTaskList(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, tasks)
+
 }
 
 func (t *taskAPI) GetTaskListByCategory(c *gin.Context) {
-	// TODO: answer here
-	categoryID, err := strconv.Atoi(c.Param("id"))
+	taskID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "Invalid category ID"})
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "Invalid task ID"})
 		return
 	}
 
-	taskCategories, err := t.taskService.GetTaskCategory(categoryID)
+	taskCategories, err := t.taskService.GetTaskCategory(taskID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	jsonData, err := json.Marshal(taskCategories)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "Error marshalling JSON"})
-		return
-	}
-
-	// Mengirimkan JSON sebagai respon
-	c.Data(http.StatusOK, "application/json", jsonData)
+	c.JSON(http.StatusOK, taskCategories)
 }
