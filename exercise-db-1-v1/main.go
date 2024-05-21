@@ -24,7 +24,7 @@ var (
 
 	credential = DBCredential{
 		HostName:     "localhost",
-		DatabaseName: "rg_database",
+		DatabaseName: "db_rgcamp",
 		Username:     "postgres",
 		Password:     "postgres",
 		Port:         "5432",
